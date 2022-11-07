@@ -1,14 +1,14 @@
-import * as React from 'react';
-import { requireNativeComponent, StyleSheet } from 'react-native';
+import * as React from "react";
+import { requireNativeComponent, StyleSheet } from "react-native";
 
-import { IMapboxNavigationProps } from './typings';
+import { IMapboxNavigationProps } from "./typings";
 
 const MapboxNavigation = (props: IMapboxNavigationProps) => {
   return <RNMapboxNavigation style={styles.container} {...props} />;
 };
 
 const RNMapboxNavigation = requireNativeComponent(
-  'MapboxNavigation',
+  "MapboxNavigation",
   MapboxNavigation
 );
 

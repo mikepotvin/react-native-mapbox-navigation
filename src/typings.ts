@@ -7,6 +7,7 @@ type OnLocationChangeEvent = {
   nativeEvent?: {
     latitude: number;
     longitude: number;
+    roadName: string;
   };
 };
 

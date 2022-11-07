@@ -1,3 +1,4 @@
-import { IMapboxNavigationProps } from './typings';
-declare const MapboxNavigation: (props: IMapboxNavigationProps) => any;
-export default MapboxNavigation;
+import * as React from "react";
+import { IMapboxNavigationProps } from "./typings";
+declare const MapboxNavigation: (props: IMapboxNavigationProps) => JSX.Element;
+export { MapboxNavigation };

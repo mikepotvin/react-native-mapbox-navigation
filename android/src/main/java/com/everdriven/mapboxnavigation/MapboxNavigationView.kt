@@ -1,4 +1,4 @@
-package com.homee.mapboxnavigation
+package com.everdriven.mapboxnavigation
 
 import android.annotation.SuppressLint
 import android.content.res.Configuration
@@ -42,7 +42,7 @@ import com.mapbox.navigation.core.trip.session.LocationMatcherResult
 import com.mapbox.navigation.core.trip.session.LocationObserver
 import com.mapbox.navigation.core.trip.session.RouteProgressObserver
 import com.mapbox.navigation.core.trip.session.VoiceInstructionsObserver
-import com.homee.mapboxnavigation.databinding.NavigationViewBinding
+import com.everdriven.mapboxnavigation.databinding.NavigationViewBinding
 import com.mapbox.api.directions.v5.DirectionsCriteria
 import com.mapbox.navigation.base.trip.model.RouteLegProgress
 import com.mapbox.navigation.base.trip.model.RouteProgress
@@ -344,9 +344,9 @@ class MapboxNavigationView(private val context: ThemedReactContext, private val 
         )
 
         // update bottom trip progress summary
-        binding.tripProgressView.render(
-            tripProgressApi.getTripProgress(routeProgress)
-        )
+        //binding.tripProgressView.render(
+            //tripProgressApi.getTripProgress(routeProgress)
+        //)
 
         val event = Arguments.createMap()
         event.putDouble("distanceTraveled", routeProgress.distanceTraveled.toDouble())
@@ -710,7 +710,7 @@ class MapboxNavigationView(private val context: ThemedReactContext, private val 
         // show UI elements
         binding.soundButton.visibility = View.VISIBLE
         binding.routeOverview.visibility = View.VISIBLE
-        binding.tripProgressCard.visibility = View.VISIBLE
+        //binding.tripProgressCard.visibility = View.VISIBLE
 
         // move the camera to overview when new route is available
         navigationCamera.requestNavigationCameraToFollowing()
@@ -727,7 +727,7 @@ class MapboxNavigationView(private val context: ThemedReactContext, private val 
         binding.soundButton.visibility = View.INVISIBLE
         binding.maneuverView.visibility = View.INVISIBLE
         binding.routeOverview.visibility = View.INVISIBLE
-        binding.tripProgressCard.visibility = View.INVISIBLE
+        //binding.tripProgressCard.visibility = View.INVISIBLE
     }
 
     private fun startSimulation(route: DirectionsRoute) {
