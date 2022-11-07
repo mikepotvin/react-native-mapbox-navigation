@@ -2,14 +2,7 @@ require "json"
 
 package = JSON.parse(File.read(File.join(__dir__, "package.json")))
 
-# TargetsToChangeToDynamic = ['MapboxMobileEvents']
-TargetsToChangeToDynamic = []
-
-rnMapboxNavigationDefaultVersion = '~> 2.7.2'
-
-$RNMBNAVVersion = rnMapboxNavigationDefaultVersion unless $RNMBNAVVersion
-
-MapboxNavigationVersion = $RNMBNAVVersion || rnMapboxNavigationDefaultVersion
+TargetsToChangeToDynamic = ['MapboxMobileEvents']
 
 $RNMBNAV = Object.new
 
@@ -35,45 +28,23 @@ def $RNMBNAV.pre_install(installer)
   end
 end
 
-## RNMBNAVDownloadToken
-# expo does not supports `.netrc`, so we need to patch curl commend used by cocoapods to pass the credentials
-
-if $RNMBNAVDownloadToken
-  module AddCredentialsToCurlWhenDownloadingMapboxNavigation
-    def curl!(*args)
-      mapbox_download = args.flatten.any? { |i| i.to_s.start_with?('https://api.mapbox.com') }
-      if mapbox_download
-        arguments = args.flatten
-        arguments.prepend("-u","mapbox:#{$RNMBNAVDownloadToken}")
-        super(*arguments)
-      else
-        super
-      end
-    end
-  end
-
-  class Pod::Downloader::Http
-    prepend AddCredentialsToCurlWhenDownloadingMapboxNavigation
-  end
-end
-
 Pod::Spec.new do |s|
   s.name         = "react-native-mapbox-navigation"
-  s.version      = package["version"]
+  s.version      = "1.1.0"
   s.summary      = package["description"]
   s.description  = <<-DESC
                   Smart Mapbox turn-by-turn routing based on real-time traffic for React Native.
                    DESC
-  s.homepage     = "https://github.com/mikepotvin/react-native-mapbox-navigation.git"
+  s.homepage     = "https://github.com/mikepotvin/react-native-mapbox-navigation"
   s.license    = { :type => "MIT", :file => "LICENSE" }
   s.authors      = { "EverDriven" => "support@everdriven" }
-  s.platforms    = { :ios => "11.0" }
+  s.platforms    = { :ios => "10.0" }
   s.source       = { :git => "https://github.com/mikepotvin/react-native-mapbox-navigation.git", :tag => "#{s.version}" }
 
   s.source_files = "ios/**/*.{h,m,swift}"
   s.requires_arc = true
 
   s.dependency "React-Core"
-  s.dependency "MapboxNavigation", MapboxNavigationVersion
+  s.dependency "MapboxNavigation", "~> 1.3.0"
 end
 
