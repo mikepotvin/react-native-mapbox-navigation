@@ -39,7 +39,7 @@ Pod::Spec.new do |s|
   s.license    = { :type => "MIT", :file => "LICENSE" }
   s.authors      = { "EverDriven" => "support@everdriven" }
   s.platforms    = { :ios => "10.0" }
-  s.source       = { :git => "https://github.com/mikepotvin/react-native-mapbox-navigation.git", :tag => "#{s.version}" }
+  s.source       = { :git => "https://github.com/homeeondemand/react-native-mapbox-navigation.git", :tag => "#{s.version}" }
 
   s.source_files = "ios/**/*.{h,m,swift}"
   s.requires_arc = true
