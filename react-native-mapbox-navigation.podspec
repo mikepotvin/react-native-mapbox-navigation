@@ -30,7 +30,7 @@ end
 
 Pod::Spec.new do |s|
   s.name         = "react-native-mapbox-navigation"
-  s.version      = "v1.1.0"
+  s.version      = "1.1.0"
   s.summary      = package["description"]
   s.description  = <<-DESC
                   Smart Mapbox turn-by-turn routing based on real-time traffic for React Native.
@@ -39,7 +39,7 @@ Pod::Spec.new do |s|
   s.license    = { :type => "MIT", :file => "LICENSE" }
   s.authors      = { "EverDriven" => "support@everdriven" }
   s.platforms    = { :ios => "10.0" }
-  s.source       = { :git => "https://github.com/mikepotvin/react-native-mapbox-navigation.git", :tag => "v1.0.0" }
+  s.source       = { :git => "https://github.com/mikepotvin/react-native-mapbox-navigation.git", :tag => "v1.0.1" }
 
   s.source_files = "ios/**/*.{h,m,swift}"
   s.requires_arc = true
