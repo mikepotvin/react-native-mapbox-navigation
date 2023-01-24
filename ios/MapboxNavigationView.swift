@@ -92,6 +92,7 @@ class MapboxNavigationView: UIView, NavigationViewControllerDelegate {
           
           let navigationOptions = NavigationOptions(navigationService: navigationService, bottomBanner: CustomBottomBarViewController())
           let vc = NavigationViewController(for: route, routeIndex: 0, routeOptions: options, navigationOptions: navigationOptions)
+          vc.shouldManageApplicationIdleTimer = false
           vc.showsEndOfRouteFeedback = strongSelf.showsEndOfRouteFeedback
           StatusView.appearance().isHidden = strongSelf.hideStatusView
           
