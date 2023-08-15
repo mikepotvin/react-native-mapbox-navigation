@@ -38,6 +38,7 @@ class MapboxNavigationView: UIView, NavigationViewControllerDelegate {
   @objc var onError: RCTDirectEventBlock?
   @objc var onCancelNavigation: RCTDirectEventBlock?
   @objc var onArrive: RCTDirectEventBlock?
+  @objc var onMuteChange: RCTDirectEventBlock?
   
   override init(frame: CGRect) {
     self.embedded = false
@@ -65,6 +66,10 @@ class MapboxNavigationView: UIView, NavigationViewControllerDelegate {
     self.navViewController?.removeFromParent()
   }
   
+  @objc private func toggleMute(sender: UIButton) {
+    onMuteChange?(["isMuted": sender.isSelected]);
+  }
+
   private func embed() {
     guard origin.count == 2 && destination.count == 2 else { return }
     
@@ -103,6 +108,10 @@ class MapboxNavigationView: UIView, NavigationViewControllerDelegate {
           vc.view.frame = strongSelf.bounds
           vc.didMove(toParent: parentVC)
           strongSelf.navViewController = vc
+
+          if let muteButton = vc.floatingButtons?[1] {
+            muteButton.addTarget(self, action: #selector(self?.toggleMute(sender:)), for: .touchUpInside)
+          }
       }
       
       strongSelf.embedding = false
