@@ -645,7 +645,6 @@ class MapboxNavigationView(private val context: ThemedReactContext, private val 
         mapboxNavigation.registerLocationObserver(locationObserver)
         mapboxNavigation.registerVoiceInstructionsObserver(voiceInstructionsObserver)
         mapboxNavigation.registerRouteProgressObserver(replayProgressObserver)
-        mapboxNavigation.registerMuteChangeObserver(muteObserver)
 
         this.origin?.let { this.destination?.let { it1 -> this.findRoute(it, it1) } }
     }
@@ -657,7 +656,6 @@ class MapboxNavigationView(private val context: ThemedReactContext, private val 
         mapboxNavigation.unregisterLocationObserver(locationObserver)
         mapboxNavigation.unregisterVoiceInstructionsObserver(voiceInstructionsObserver)
         mapboxNavigation.unregisterRouteProgressObserver(replayProgressObserver)
-        mapboxNavigation.unregisterMuteChangeObserver(muteObserver)
     }
 
     private fun onDestroy() {
