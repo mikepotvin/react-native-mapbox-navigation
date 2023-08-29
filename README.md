@@ -237,9 +237,9 @@ For more information you can read the [docs provided by Mapbox](https://docs.map
 ## Usage
 
 ```jsx
-import * as React from "react";
-import { StyleSheet, View } from "react-native";
-import MapboxNavigation from "@everdriven/react-native-mapbox-navigation";
+import * as React from 'react';
+import { StyleSheet, View } from 'react-native';
+import MapboxNavigation from '@everdriven/react-native-mapbox-navigation';
 
 export const SomeComponent = () => {
   return (
@@ -330,6 +330,10 @@ Function that is called whenever a user cancels navigation.
 #### `onArrive`
 
 Function that is called when you arrive at the provided destination.
+
+#### `onMuteChange`
+
+Function that is called when the mute state for voice instructions is changed. It receives `isMuted` as a parameter where the current state can be queried.
 
 ## Contributing
 

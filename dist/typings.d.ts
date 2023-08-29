@@ -22,6 +22,12 @@ declare type OnErrorEvent = {
     message?: string;
   };
 };
+
+declare type OnMuteChangeEvent = {
+  nativeEvent?: {
+    isMuted: boolean;
+  };
+};
 export interface IMapboxNavigationProps {
   origin: Coordinate;
   destination: Coordinate;
@@ -29,6 +35,7 @@ export interface IMapboxNavigationProps {
   onLocationChange?: (event: OnLocationChangeEvent) => void;
   onRouteProgressChange?: (event: OnRouteProgressChangeEvent) => void;
   onError?: (event: OnErrorEvent) => void;
+  onMuteChange?: (event: OnMuteChangeEvent) => void;
   onCancelNavigation?: () => void;
   onArrive?: () => void;
   showsEndOfRouteFeedback?: boolean;
