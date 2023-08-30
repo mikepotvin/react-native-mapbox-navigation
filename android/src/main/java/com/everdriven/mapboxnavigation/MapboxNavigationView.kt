@@ -208,16 +208,16 @@ class MapboxNavigationView(private val context: ThemedReactContext, private val 
      */
     private var isVoiceInstructionsMuted = false
         set(value) {
-            if (!this::voiceInstructionsPlayer.isInitialized) { 
-                initializeVoiceInstructionApi()
-            }
             field = value
-            if (value) {
+
+            if (this::voiceInstructionsPlayer.isInitialized) { 
+                if (value) {
                 binding.soundButton.muteAndExtend(BUTTON_ANIMATION_DURATION)
                 voiceInstructionsPlayer.volume(SpeechVolume(0f))
-            } else {
-                binding.soundButton.unmuteAndExtend(BUTTON_ANIMATION_DURATION)
-                voiceInstructionsPlayer.volume(SpeechVolume(1f))
+                } else {
+                    binding.soundButton.unmuteAndExtend(BUTTON_ANIMATION_DURATION)
+                    voiceInstructionsPlayer.volume(SpeechVolume(1f))
+                }            
             }
         }
 
@@ -471,6 +471,14 @@ class MapboxNavigationView(private val context: ThemedReactContext, private val 
             accessToken,
             Locale.US.language
         )
+
+        if (isVoiceInstructionsMuted) {
+            binding.soundButton.muteAndExtend(BUTTON_ANIMATION_DURATION)
+            voiceInstructionsPlayer.volume(SpeechVolume(0f))
+        } else {
+            binding.soundButton.unmuteAndExtend(BUTTON_ANIMATION_DURATION)
+            voiceInstructionsPlayer.volume(SpeechVolume(1f))            
+        }
     }
 
     @SuppressLint("MissingPermission")
@@ -629,7 +637,9 @@ class MapboxNavigationView(private val context: ThemedReactContext, private val 
         }
 
         // set initial sounds button state
-        binding.soundButton.unmute()
+        if (!isVoiceInstructionsMuted) { 
+            binding.soundButton.unmute()
+        }
 
         // start the trip session to being receiving location updates in free drive
         // and later when a route is set also receiving route progress updates
