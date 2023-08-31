@@ -208,16 +208,16 @@ class MapboxNavigationView(private val context: ThemedReactContext, private val 
      */
     private var isVoiceInstructionsMuted = false
         set(value) {
-            if (!this::voiceInstructionsPlayer.isInitialized) { 
-                initializeVoiceInstructionApi()
-            }
             field = value
-            if (value) {
+
+            if (this::voiceInstructionsPlayer.isInitialized) { 
+                if (value) {
                 binding.soundButton.muteAndExtend(BUTTON_ANIMATION_DURATION)
                 voiceInstructionsPlayer.volume(SpeechVolume(0f))
-            } else {
-                binding.soundButton.unmuteAndExtend(BUTTON_ANIMATION_DURATION)
-                voiceInstructionsPlayer.volume(SpeechVolume(1f))
+                } else {
+                    binding.soundButton.unmuteAndExtend(BUTTON_ANIMATION_DURATION)
+                    voiceInstructionsPlayer.volume(SpeechVolume(1f))
+                }            
             }
         }
 
@@ -453,26 +453,6 @@ class MapboxNavigationView(private val context: ThemedReactContext, private val 
         )
     }
 
-    private fun initializeVoiceInstructionApi() {
-        if (accessToken == null) {
-            sendErrorToReact("Mapbox access token is not set")
-            return
-        }
-
-        // initialize voice instructions api and the voice instruction player
-        speechApi = MapboxSpeechApi(
-            context,
-            accessToken,
-            Locale.US.language
-        )
-
-        voiceInstructionsPlayer = MapboxVoiceInstructionsPlayer(
-            context,
-            accessToken,
-            Locale.US.language
-        )
-    }
-
     @SuppressLint("MissingPermission")
     fun onCreate() {
         if (accessToken == null) {
@@ -578,7 +558,26 @@ class MapboxNavigationView(private val context: ThemedReactContext, private val 
                 .build()
         )
 
-        initializeVoiceInstructionApi()
+        // initialize voice instructions api and the voice instruction player
+        speechApi = MapboxSpeechApi(
+            context,
+            accessToken,
+            Locale.US.language
+        )
+
+        voiceInstructionsPlayer = MapboxVoiceInstructionsPlayer(
+            context,
+            accessToken,
+            Locale.US.language
+        )
+
+        if (isVoiceInstructionsMuted) {
+            binding.soundButton.muteAndExtend(BUTTON_ANIMATION_DURATION)
+            voiceInstructionsPlayer.volume(SpeechVolume(0f))
+        } else {
+            binding.soundButton.unmuteAndExtend(BUTTON_ANIMATION_DURATION)
+            voiceInstructionsPlayer.volume(SpeechVolume(1f))            
+        }
 
         // initialize route line, the withRouteLineBelowLayerId is specified to place
         // the route line below road labels layer on the map
@@ -627,9 +626,6 @@ class MapboxNavigationView(private val context: ThemedReactContext, private val 
                 .getJSModule(RCTEventEmitter::class.java)
                 .receiveEvent(id, "onMuteChange", event)
         }
-
-        // set initial sounds button state
-        binding.soundButton.unmute()
 
         // start the trip session to being receiving location updates in free drive
         // and later when a route is set also receiving route progress updates
