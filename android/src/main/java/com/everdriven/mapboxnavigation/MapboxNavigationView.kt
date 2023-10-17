@@ -467,6 +467,16 @@ class MapboxNavigationView(private val context: ThemedReactContext, private val 
 
         mapboxMap = binding.mapView.getMapboxMap()
 
+        binding.mapView.setOnTouchListener(OnTouchListener { v, event ->
+            when (event.action) {
+                MotionEvent.ACTION_MOVE, MotionEvent.ACTION_DOWN -> binding.mapView.getParent().requestDisallowInterceptTouchEvent(true)
+                MotionEvent.ACTION_UP, MotionEvent.ACTION_CANCEL -> binding.mapView.getParent().requestDisallowInterceptTouchEvent(
+                    false
+                )
+            }
+            binding.mapView.onTouchEvent(event)
+        })
+
         // initialize the location puck
         binding.mapView.location.apply {
             this.locationPuck = LocationPuck2D(
