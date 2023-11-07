@@ -88,7 +88,7 @@ class MapboxNavigationView: UIView, NavigationViewControllerDelegate {
       
       switch result {
         case .failure(let error):
-          strongSelf.onError!(["message": error.localizedDescription])
+          return
         case .success(let response):
           guard let route = response.routes?.first else {
             return
