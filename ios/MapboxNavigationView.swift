@@ -96,6 +96,8 @@ class MapboxNavigationView: UIView, NavigationViewControllerDelegate {
     // let options = NavigationRouteOptions(waypoints: [originWaypoint, destinationWaypoint])
     let options = NavigationRouteOptions(waypoints: [originWaypoint, destinationWaypoint], profileIdentifier: .automobileAvoidingTraffic)
 
+/* REMOVE: https://github.com/sarafhbk/react-native-mapbox-navigation/commit/96b4e7b110b11662af0881206571b8ff6505538f
+   doesn't build with 2.18.0 version of mapbox navigation sdk for ios 
     if let vehicleMaxHeight = vehicleMaxHeight?.doubleValue {
         options.includesMaxHeightOnMostRestrictiveBridge = true
         options.maxHeight = vehicleMaxHeight
@@ -103,6 +105,7 @@ class MapboxNavigationView: UIView, NavigationViewControllerDelegate {
     if let vehicleMaxWidth = vehicleMaxWidth?.doubleValue {
         options.maxWidth = vehicleMaxWidth
     }
+*/
 
     Directions.shared.calculate(options) { [weak self] (_, result) in
       guard let strongSelf = self, let parentVC = strongSelf.parentViewController else {
