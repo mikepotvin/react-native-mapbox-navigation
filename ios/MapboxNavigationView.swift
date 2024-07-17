@@ -24,6 +24,10 @@ class MapboxNavigationView: UIView, NavigationViewControllerDelegate {
   @objc var origin: NSArray = [] {
     didSet { setNeedsLayout() }
   }
+
+  @objc var waypoints: NSArray = [] {
+    didSet { setNeedsLayout() }
+  }
   
   @objc var destination: NSArray = [] {
     didSet { setNeedsLayout() }
@@ -40,6 +44,8 @@ class MapboxNavigationView: UIView, NavigationViewControllerDelegate {
   @objc var onCancelNavigation: RCTDirectEventBlock?
   @objc var onArrive: RCTDirectEventBlock?
   @objc var onMuteChange: RCTDirectEventBlock?
+  @objc var vehicleMaxHeight: NSNumber?
+  @objc var vehicleMaxWidth: NSNumber?
   
   override init(frame: CGRect) {
     self.embedded = false
@@ -79,9 +85,34 @@ class MapboxNavigationView: UIView, NavigationViewControllerDelegate {
     let originWaypoint = Waypoint(coordinate: CLLocationCoordinate2D(latitude: origin[1] as! CLLocationDegrees, longitude: origin[0] as! CLLocationDegrees))
     let destinationWaypoint = Waypoint(coordinate: CLLocationCoordinate2D(latitude: destination[1] as! CLLocationDegrees, longitude: destination[0] as! CLLocationDegrees))
 
-    let options = NavigationRouteOptions(waypoints: [originWaypoint, destinationWaypoint])
-            
-    Directions.shared.calculate(options) { [weak self] (session, result) in
+    var waypointsArray = [originWaypoint]
+    
+    // Adding intermediate waypoints if any
+    for waypointArray in waypoints {
+      if let waypointCoordinates = waypointArray as? NSArray, waypointCoordinates.count == 2,
+         let lat = waypointCoordinates[1] as? CLLocationDegrees, let lon = waypointCoordinates[0] as? CLLocationDegrees {
+        let waypoint = Waypoint(coordinate: CLLocationCoordinate2D(latitude: lat, longitude: lon))
+        waypointsArray.append(waypoint)
+      }
+    }
+    
+    waypointsArray.append(destinationWaypoint)
+
+    // let options = NavigationRouteOptions(waypoints: [originWaypoint, destinationWaypoint])
+    let options = NavigationRouteOptions(waypoints: [originWaypoint, destinationWaypoint], profileIdentifier: .automobileAvoidingTraffic)
+
+/* REMOVE: https://github.com/sarafhbk/react-native-mapbox-navigation/commit/96b4e7b110b11662af0881206571b8ff6505538f
+   doesn't build with 2.18.0 version of mapbox navigation sdk for ios 
+    if let vehicleMaxHeight = vehicleMaxHeight?.doubleValue {
+        options.includesMaxHeightOnMostRestrictiveBridge = true
+        options.maxHeight = vehicleMaxHeight
+    }
+    if let vehicleMaxWidth = vehicleMaxWidth?.doubleValue {
+        options.maxWidth = vehicleMaxWidth
+    }
+*/
+
+    Directions.shared.calculate(options) { [weak self] (_, result) in
       guard let strongSelf = self, let parentVC = strongSelf.parentViewController else {
         return
       }

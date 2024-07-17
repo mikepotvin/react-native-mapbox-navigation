@@ -1,3 +1,31 @@
+# Android NDK 32 compatible fork of react-native-mapbox-navigation
+
+This repository is a fork of https://github.com/homeeondemand/react-native-mapbox-navigation and https://github.com/homeeondemand/react-native-mapbox-navigation/pull/121
+
+Also uses mapbox preview release of NDK 23 compatible navigation SDK.
+
+To adopt, please do:
+`yarn add https://github.com/mfazekas/react-native-mapbox-navigation#ndk23plus`
+
+also please add the following to your android/gradle.build:
+```
+allprojects {
+    repositories {
+        ...
+        maven {
+            url 'https://api.mapbox.com/downloads/v2/snapshots/maven'
+            authentication {
+                basic(BasicAuthentication)
+            }
+            credentials {
+                username = "mapbox"
+                password = project.properties['MAPBOX_DOWNLOADS_TOKEN'] ?: ""
+            }
+        }
+    }
+}
+```
+
 # React Native Mapbox Navigation
 
 <img alt="React Native Mapbox Navigation" src="./img/ios-nav.png?v=2" width="300" align="right" />
@@ -220,6 +248,16 @@ allprojects {
                 password = project.properties['MAPBOX_DOWNLOADS_TOKEN'] ?: ""
             }
         }
+        maven {
+            url 'https://api.mapbox.com/downloads/v2/snapshots/maven'
+            authentication {
+                basic(BasicAuthentication)
+            }
+            credentials {
+                username = "mapbox"
+                password = project.properties['MAPBOX_DOWNLOADS_TOKEN'] ?: ""
+            }
+        }
     }
 }
 ```
@@ -295,6 +333,11 @@ Array that contains the longitude and latitude for the starting point.<br>
 Array that contains the longitude and latitude for the destination point.<br>
 `[$longitude, $latitude]`
 
+#### `waypoints`
+
+Array that contains arrays of longitude and latitude for the waypoints (limit 25 as per the MapBox restrictions).<br>
+`[[$longitude, $latitude], [$longitude, $latitude]]`
+
 #### `shouldSimulateRoute`
 
 Boolean that controls route simulation. Set this as `true` to auto navigate which is useful for testing or demo purposes. Defaults to `false`.
@@ -310,6 +353,18 @@ Boolean that toggles voice instructions. Defaults to `false`.
 #### `hideStatusView`
 
 Boolean that controls showing the `StatusView` (iOS only). This is the transparent black bar with the "Simulating Navigation" text shown in the above screenshot. Defaults to `false`.
+
+#### `vehicleMaxWidth`
+
+Number that sets max width (in meters) of the vehicle. Defaults to `1.6`.
+
+#### `vehicleMaxHeight`
+
+Number that sets max height (in meters) of the vehicle. Defaults to `1.9`.
+
+#### `mute`
+
+Boolean that toggles voice instructions. Defaults to `false`.
 
 #### `onLocationChange`
 
