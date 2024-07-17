@@ -8,7 +8,7 @@ import {
   Button,
   SafeAreaView,
 } from 'react-native';
-import MapboxNavigation from '@homee/react-native-mapbox-navigation';
+import MapboxNavigation from '@everdriven/react-native-mapbox-navigation';
 
 export const Configuration = ({
   from: _from,

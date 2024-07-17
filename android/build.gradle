@@ -94,6 +94,6 @@ if (isNewArchitectureEnabled()) {
   react {
     jsRootDir = file("../src/")
     libraryName = "MapboxNavigationView"
-    codegenJavaPackageName = "com.homee.mapboxnavigation"
+    codegenJavaPackageName = "com.everdriven.mapboxnavigation"
   }
 }
