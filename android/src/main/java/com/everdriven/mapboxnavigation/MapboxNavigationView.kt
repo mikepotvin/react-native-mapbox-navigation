@@ -476,7 +476,7 @@ class MapboxNavigationView(private val context: ThemedReactContext, private val 
             this.locationPuck = LocationPuck2D(
                 bearingImage = ContextCompat.getDrawable(
                     context,
-                    R.drawable.mapbox_navigation_puck_icon
+                    com.mapbox.navigation.ui.maps.R.drawable.mapbox_navigation_puck_icon
                 )
             )
             setLocationProvider(navigationLocationProvider)
