@@ -1,6 +1,6 @@
 import MapboxCoreNavigation
-import MapboxDirections
 import MapboxNavigation
+import MapboxDirections
 
 // adapted from https://pspdfkit.com/blog/2017/native-view-controllers-and-react-native/ and https://github.com/mslabenyak/react-native-mapbox-navigation/blob/master/ios/Mapbox/MapboxNavigationView.swift
 extension UIView {
@@ -72,11 +72,11 @@ class MapboxNavigationView: UIView, NavigationViewControllerDelegate {
     // cleanup and teardown any existing resources
     self.navViewController?.removeFromParent()
   }
-  
+
   @objc private func toggleMute(sender: UIButton) {
     onMuteChange?(["isMuted": sender.isSelected]);
   }
-
+  
   private func embed() {
     guard origin.count == 2 && destination.count == 2 else { return }
     
@@ -102,7 +102,7 @@ class MapboxNavigationView: UIView, NavigationViewControllerDelegate {
     let options = NavigationRouteOptions(waypoints: [originWaypoint, destinationWaypoint], profileIdentifier: .automobileAvoidingTraffic)
 
 /* REMOVE: https://github.com/sarafhbk/react-native-mapbox-navigation/commit/96b4e7b110b11662af0881206571b8ff6505538f
-   doesn't build with 2.18.0 version of mapbox navigation sdk for ios 
+   doesn't build with 2.18.0 version of mapbox navigation sdk for ios
     if let vehicleMaxHeight = vehicleMaxHeight?.doubleValue {
         options.includesMaxHeightOnMostRestrictiveBridge = true
         options.maxHeight = vehicleMaxHeight
@@ -119,22 +119,22 @@ class MapboxNavigationView: UIView, NavigationViewControllerDelegate {
       
       switch result {
         case .failure(let error):
-          return
+          strongSelf.onError!(["message": error.localizedDescription])
         case .success(let response):
-          guard let route = response.routes?.first else {
+          guard let weakSelf = self else {
             return
           }
-          
-          let navigationService = MapboxNavigationService(route: route, routeIndex: 0, routeOptions: options, simulating: strongSelf.shouldSimulateRoute ? .always : .never)
+          let navigationService = MapboxNavigationService(routeResponse: response, routeIndex: 0, routeOptions: options, simulating: strongSelf.shouldSimulateRoute ? .always : .never)
           
           let navigationOptions = NavigationOptions(navigationService: navigationService, bottomBanner: CustomBottomBarViewController())
-          let vc = NavigationViewController(for: route, routeIndex: 0, routeOptions: options, navigationOptions: navigationOptions)
+          let vc = NavigationViewController(for: response, routeIndex: 0, routeOptions: options, navigationOptions: navigationOptions)
+
           vc.shouldManageApplicationIdleTimer = false
           vc.showsEndOfRouteFeedback = strongSelf.showsEndOfRouteFeedback
           StatusView.appearance().isHidden = strongSelf.hideStatusView
-          
-          NavigationSettings.shared.voiceMuted = strongSelf.mute;
 
+          NavigationSettings.shared.voiceMuted = strongSelf.mute;
+          
           vc.delegate = strongSelf
         
           parentVC.addChild(vc)
@@ -165,7 +165,6 @@ class MapboxNavigationView: UIView, NavigationViewControllerDelegate {
     if (!canceled) {
       return;
     }
-    
     onCancelNavigation?(["message": ""]);
   }
   
