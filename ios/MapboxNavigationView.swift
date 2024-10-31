@@ -16,11 +16,12 @@ extension UIView {
   }
 }
 
-class MapboxNavigationView: UIView, NavigationViewControllerDelegate {
+class MapboxNavigationView: UIView, NavigationViewControllerDelegate, PassiveLocationManagerDelegate {
   weak var navViewController: NavigationViewController?
   var embedded: Bool
   var embedding: Bool
   private let routingProvider = MapboxRoutingProvider() // Instantiate MapboxRoutingProvider
+  private var passiveLocationManager: PassiveLocationManager? // Add property for PassiveLocationManager
   
   @objc var origin: NSArray = [] {
     didSet { setNeedsLayout() }
@@ -51,6 +52,8 @@ class MapboxNavigationView: UIView, NavigationViewControllerDelegate {
   override init(frame: CGRect) {
     self.embedded = false
     self.embedding = false
+    // Initialize PassiveLocationManager
+    self.passiveLocationManager = PassiveLocationManager()
     super.init(frame: frame)
   }
   
@@ -133,7 +136,11 @@ class MapboxNavigationView: UIView, NavigationViewControllerDelegate {
             return
           }
           let navigationService = MapboxNavigationService(indexedRouteResponse: indexedRouteResponse, customRoutingProvider: self.routingProvider, credentials: NavigationSettings.shared.directions.credentials, simulating: strongSelf.shouldSimulateRoute ? .always : .never)
-          
+
+          // Start receiving location updates
+          strongSelf.passiveLocationManager?.delegate = strongSelf
+          strongSelf.passiveLocationManager?.startUpdatingLocation()
+
           let navigationOptions = NavigationOptions(navigationService: navigationService, bottomBanner: CustomBottomBarViewController())
           let vc = NavigationViewController(for: indexedRouteResponse, navigationOptions: navigationOptions)
 
@@ -173,12 +180,22 @@ class MapboxNavigationView: UIView, NavigationViewControllerDelegate {
     if (!canceled) {
       return;
     }
+    // Stop receiving location updates
+    if canceled {
+      passiveLocationManager?.stopUpdatingLocation()
+    }
     onCancelNavigation?(["message": ""]);
   }
   
   func navigationViewController(_ navigationViewController: NavigationViewController, didArriveAt waypoint: Waypoint) -> Bool {
     onArrive?(["message": ""]);
     return true;
+  }
+  // Use delegate method to receive location updates
+  func locationManager(_ manager: PassiveLocationManager, didUpdateLocations locations: [CLLocation]) {
+    guard let location = locations.last else { return }
+    
+    onLocationChange?(["longitude": location.coordinate.longitude, "latitude": location.coordinate.latitude])
   }
 }
 
