@@ -20,6 +20,7 @@ class MapboxNavigationView: UIView, NavigationViewControllerDelegate {
   weak var navViewController: NavigationViewController?
   var embedded: Bool
   var embedding: Bool
+  private let routingProvider = MapboxRoutingProvider() // Instantiate MapboxRoutingProvider
   
   @objc var origin: NSArray = [] {
     didSet { setNeedsLayout() }
@@ -89,8 +90,8 @@ class MapboxNavigationView: UIView, NavigationViewControllerDelegate {
     
     embedding = true
 
-        let originWaypoint = Waypoint(coordinate: CLLocationCoordinate2D(latitude: latOrigin, longitude: lonOrigin))
-        let destinationWaypoint = Waypoint(coordinate: CLLocationCoordinate2D(latitude: latDest, longitude: lonDest))
+    let originWaypoint = Waypoint(coordinate: CLLocationCoordinate2D(latitude: latOrigin, longitude: lonOrigin))
+    let destinationWaypoint = Waypoint(coordinate: CLLocationCoordinate2D(latitude: latDest, longitude: lonDest))
 
     var waypointsArray = [originWaypoint]
     
@@ -118,8 +119,8 @@ class MapboxNavigationView: UIView, NavigationViewControllerDelegate {
         options.maxWidth = vehicleMaxWidth
     }
 */
-
-    Directions.shared.calculate(options) { [weak self] (_, result) in
+    // update calculate method: replaced Directions.shared.calculate method with routingProvider.calculateRoutes
+    routingProvider.calculateRoutes(options: options) { [weak self] result in
       guard let strongSelf = self, let parentVC = strongSelf.parentViewController else {
         return
       }
@@ -127,14 +128,14 @@ class MapboxNavigationView: UIView, NavigationViewControllerDelegate {
       switch result {
         case .failure(let error):
           strongSelf.onError?(["message": error.localizedDescription])
-        case .success(let response):
-          guard let weakSelf = self else {
+        case .success(let indexedRouteResponse): // indexedRouteResponse is an array of RouteResponse
+          guard let self = self else {
             return
           }
-          let navigationService = MapboxNavigationService(routeResponse: response, routeIndex: 0, routeOptions: options, simulating: strongSelf.shouldSimulateRoute ? .always : .never)
+          let navigationService = MapboxNavigationService(indexedRouteResponse: indexedRouteResponse, customRoutingProvider: self.routingProvider, credentials: NavigationSettings.shared.directions.credentials, simulating: strongSelf.shouldSimulateRoute ? .always : .never)
           
           let navigationOptions = NavigationOptions(navigationService: navigationService, bottomBanner: CustomBottomBarViewController())
-          let vc = NavigationViewController(for: response, routeIndex: 0, routeOptions: options, navigationOptions: navigationOptions)
+          let vc = NavigationViewController(for: indexedRouteResponse, navigationOptions: navigationOptions)
 
           vc.shouldManageApplicationIdleTimer = false
           vc.showsEndOfRouteFeedback = strongSelf.showsEndOfRouteFeedback
