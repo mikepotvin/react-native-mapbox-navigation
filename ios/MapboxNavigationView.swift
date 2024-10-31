@@ -78,12 +78,19 @@ class MapboxNavigationView: UIView, NavigationViewControllerDelegate {
   }
   
   private func embed() {
-    guard origin.count == 2 && destination.count == 2 else { return }
+    guard origin.count == 2, destination.count == 2,
+          let latOrigin = origin[1] as? CLLocationDegrees,
+          let lonOrigin = origin[0] as? CLLocationDegrees,
+          let latDest = destination[1] as? CLLocationDegrees,
+          let lonDest = destination[0] as? CLLocationDegrees else {
+        onError?(["message": "Invalid origin or destination coordinates."])
+        return
+    }
     
     embedding = true
 
-    let originWaypoint = Waypoint(coordinate: CLLocationCoordinate2D(latitude: origin[1] as! CLLocationDegrees, longitude: origin[0] as! CLLocationDegrees))
-    let destinationWaypoint = Waypoint(coordinate: CLLocationCoordinate2D(latitude: destination[1] as! CLLocationDegrees, longitude: destination[0] as! CLLocationDegrees))
+        let originWaypoint = Waypoint(coordinate: CLLocationCoordinate2D(latitude: latOrigin, longitude: lonOrigin))
+        let destinationWaypoint = Waypoint(coordinate: CLLocationCoordinate2D(latitude: latDest, longitude: lonDest))
 
     var waypointsArray = [originWaypoint]
     
@@ -119,7 +126,7 @@ class MapboxNavigationView: UIView, NavigationViewControllerDelegate {
       
       switch result {
         case .failure(let error):
-          strongSelf.onError!(["message": error.localizedDescription])
+          strongSelf.onError?(["message": error.localizedDescription])
         case .success(let response):
           guard let weakSelf = self else {
             return
