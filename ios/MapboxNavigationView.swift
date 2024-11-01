@@ -69,7 +69,7 @@ class MapboxNavigationView: UIView, NavigationViewControllerDelegate, PassiveLoc
   }
 
   private func stopPassiveLocationManager() {
-    passiveLocationManager?.stopUpdatingLocation()
+    passiveLocationManager?.pauseTripSession()
   }
 
   override func layoutSubviews() {
