@@ -111,12 +111,17 @@ class MapboxNavigationView: UIView, NavigationViewControllerDelegate, PassiveLoc
   }
 
   @objc func startNavigation() {
+    guard !embedding && !embedded else { return }
+    
+    embedding = true
+
     guard origin.count == 2, destination.count == 2,
           let latOrigin = origin[1] as? CLLocationDegrees,
           let lonOrigin = origin[0] as? CLLocationDegrees,
           let latDest = destination[1] as? CLLocationDegrees,
           let lonDest = destination[0] as? CLLocationDegrees else {
         onError?(["message": "Invalid origin or destination coordinates."])
+        embedding = false
         return
     }
     
@@ -186,6 +191,8 @@ class MapboxNavigationView: UIView, NavigationViewControllerDelegate, PassiveLoc
           }
       }
     }
+    embedded = true
+    embedding = false
   }
   
   func stopNavigation() {
