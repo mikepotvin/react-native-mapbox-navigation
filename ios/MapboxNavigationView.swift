@@ -223,9 +223,18 @@ class MapboxNavigationView: UIView, NavigationViewControllerDelegate, PassiveLoc
   // Use delegate method to receive location updates
   func locationManager(_ manager: PassiveLocationManager, didUpdateLocations locations: [CLLocation]) {
     guard let location = locations.last else { return }
+
+    if location.horizontalAccuracy > 0 && location.horizontalAccuracy < 50 { 
+        if !isNavigationActive {
+            origin = [location.coordinate.longitude, location.coordinate.latitude]
+            startNavigation()
+        }
+    }
     
+    // Emit location change event
     onLocationChange?(["longitude": location.coordinate.longitude, "latitude": location.coordinate.latitude])
-  }
+}
+
 }
 
 class CustomBottomBarViewController: ContainerViewController {
