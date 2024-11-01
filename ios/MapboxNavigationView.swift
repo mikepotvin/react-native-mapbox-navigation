@@ -22,6 +22,7 @@ class MapboxNavigationView: UIView, NavigationViewControllerDelegate, PassiveLoc
   var embedding: Bool
   private let routingProvider = MapboxRoutingProvider() // Instantiate MapboxRoutingProvider
   private var passiveLocationManager: PassiveLocationManager? // Add property for PassiveLocationManager
+  private var isNavigationActive = false // Track if navigation is active
   
   @objc var origin: NSArray = [] {
     didSet { setNeedsLayout() }
@@ -52,15 +53,25 @@ class MapboxNavigationView: UIView, NavigationViewControllerDelegate, PassiveLoc
   override init(frame: CGRect) {
     self.embedded = false
     self.embedding = false
-    // Initialize PassiveLocationManager
-    self.passiveLocationManager = PassiveLocationManager()
     super.init(frame: frame)
+    setupPassiveLocationManager()
   }
   
   required init?(coder aDecoder: NSCoder) {
     fatalError("init(coder:) has not been implemented")
   }
   
+  private func setupPassiveLocationManager() {
+    // Initialize PassiveLocationManager
+    self.passiveLocationManager = PassiveLocationManager()
+    passiveLocationManager?.delegate = self
+    passiveLocationManager?.startUpdatingLocation()
+  }
+
+  private func stopPassiveLocationManager() {
+    passiveLocationManager?.stopUpdatingLocation()
+  }
+
   override func layoutSubviews() {
     super.layoutSubviews()
     
@@ -72,9 +83,10 @@ class MapboxNavigationView: UIView, NavigationViewControllerDelegate, PassiveLoc
   }
   
   override func removeFromSuperview() {
-    super.removeFromSuperview()
     // cleanup and teardown any existing resources
-    self.navViewController?.removeFromParent()
+    stopNavigation()
+    stopPassiveLocationManager();
+    super.removeFromSuperview()
   }
 
   @objc private func toggleMute(sender: UIButton) {
@@ -82,6 +94,23 @@ class MapboxNavigationView: UIView, NavigationViewControllerDelegate, PassiveLoc
   }
   
   private func embed() {
+    guard let parentVC = parentViewController else { return }
+    guard !embedding && !embedded else { return }
+    embedding = true
+
+    let vc = NavigationViewController()
+    vc.delegate = self
+    parentVC.addChild(vc)
+    self.addSubview(vc.view)
+    vc.view.frame = self.bounds
+    vc.didMove(toParent: parentVC)
+    navViewController = vc
+
+    embedding = false
+    embedded = true
+  }
+
+  @objc func startNavigation() {
     guard origin.count == 2, destination.count == 2,
           let latOrigin = origin[1] as? CLLocationDegrees,
           let lonOrigin = origin[0] as? CLLocationDegrees,
@@ -91,11 +120,11 @@ class MapboxNavigationView: UIView, NavigationViewControllerDelegate, PassiveLoc
         return
     }
     
-    embedding = true
+    // Stop passive location updates
+    passiveLocationManager?.stopUpdatingLocation()
 
     let originWaypoint = Waypoint(coordinate: CLLocationCoordinate2D(latitude: latOrigin, longitude: lonOrigin))
     let destinationWaypoint = Waypoint(coordinate: CLLocationCoordinate2D(latitude: latDest, longitude: lonDest))
-
     var waypointsArray = [originWaypoint]
     
     // Adding intermediate waypoints if any
@@ -108,9 +137,7 @@ class MapboxNavigationView: UIView, NavigationViewControllerDelegate, PassiveLoc
     }
     
     waypointsArray.append(destinationWaypoint)
-
-    // let options = NavigationRouteOptions(waypoints: [originWaypoint, destinationWaypoint])
-    let options = NavigationRouteOptions(waypoints: [originWaypoint, destinationWaypoint], profileIdentifier: .automobileAvoidingTraffic)
+    let options = NavigationRouteOptions(waypoints: waypointsArray, profileIdentifier: .automobileAvoidingTraffic)
 
 /* REMOVE: https://github.com/sarafhbk/react-native-mapbox-navigation/commit/96b4e7b110b11662af0881206571b8ff6505538f
    doesn't build with 2.18.0 version of mapbox navigation sdk for ios
@@ -135,12 +162,7 @@ class MapboxNavigationView: UIView, NavigationViewControllerDelegate, PassiveLoc
           guard let self = self else {
             return
           }
-          let navigationService = MapboxNavigationService(indexedRouteResponse: indexedRouteResponse, customRoutingProvider: self.routingProvider, credentials: NavigationSettings.shared.directions.credentials, simulating: strongSelf.shouldSimulateRoute ? .always : .never)
-
-          // Start receiving location updates
-          strongSelf.passiveLocationManager?.delegate = strongSelf
-          strongSelf.passiveLocationManager?.startUpdatingLocation()
-
+          let navigationService = MapboxNavigationService(indexedRouteResponse: indexedRouteResponse, customRoutingProvider: strongSelf.routingProvider, credentials: NavigationSettings.shared.directions.credentials, simulating: strongSelf.shouldSimulateRoute ? .always : .never)
           let navigationOptions = NavigationOptions(navigationService: navigationService, bottomBanner: CustomBottomBarViewController())
           let vc = NavigationViewController(for: indexedRouteResponse, navigationOptions: navigationOptions)
 
@@ -157,15 +179,21 @@ class MapboxNavigationView: UIView, NavigationViewControllerDelegate, PassiveLoc
           vc.view.frame = strongSelf.bounds
           vc.didMove(toParent: parentVC)
           strongSelf.navViewController = vc
+          strongSelf.isNavigationActive = true
 
           if let muteButton = vc.floatingButtons?[1] {
             muteButton.addTarget(self, action: #selector(self?.toggleMute(sender:)), for: .touchUpInside)
           }
       }
-      
-      strongSelf.embedding = false
-      strongSelf.embedded = true
     }
+  }
+  
+  func stopNavigation() {
+      navViewController?.removeFromParent()
+      navViewController?.view.removeFromSuperview()
+      navViewController = nil
+      isNavigationActive = false
+      embedded = false
   }
   
   func navigationViewController(_ navigationViewController: NavigationViewController, didUpdate progress: RouteProgress, with location: CLLocation, rawLocation: CLLocation) {
@@ -182,7 +210,8 @@ class MapboxNavigationView: UIView, NavigationViewControllerDelegate, PassiveLoc
     }
     // Stop receiving location updates
     if canceled {
-      passiveLocationManager?.stopUpdatingLocation()
+      stopPassiveLocationManager()
+      stopNavigation()
     }
     onCancelNavigation?(["message": ""]);
   }
