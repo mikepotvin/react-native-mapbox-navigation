@@ -52,7 +52,7 @@ class MapboxNavigationView: UIView, NavigationViewControllerDelegate {
     @objc var vehicleMaxHeight: NSNumber?
     @objc var vehicleMaxWidth: NSNumber?
     
-    var navigationView: NavigationView!
+    var navigationMapView: NavigationMapView!
     
     override init(frame: CGRect) {
         self.embedded = false
@@ -90,21 +90,25 @@ class MapboxNavigationView: UIView, NavigationViewControllerDelegate {
         embedding = true
         
         
-        navigationView = NavigationView(frame: self.bounds)
-        navigationView.translatesAutoresizingMaskIntoConstraints = false
-        self.addSubview(navigationView)
+        navigationMapView = NavigationMapView(frame: self.bounds)
+        navigationMapView.translatesAutoresizingMaskIntoConstraints = false
+        self.addSubview(navigationMapView)
         NSLayoutConstraint.activate([
-            navigationView.leadingAnchor.constraint(equalTo: self.leadingAnchor),
-            navigationView.trailingAnchor.constraint(equalTo: self.trailingAnchor),
-            navigationView.topAnchor.constraint(equalTo: self.topAnchor),
-            navigationView.bottomAnchor.constraint(equalTo: self.bottomAnchor)
+            navigationMapView.leadingAnchor.constraint(equalTo: self.leadingAnchor),
+            navigationMapView.trailingAnchor.constraint(equalTo: self.trailingAnchor),
+            navigationMapView.topAnchor.constraint(equalTo: self.topAnchor),
+            navigationMapView.bottomAnchor.constraint(equalTo: self.bottomAnchor)
         ])
         StatusView.appearance().isHidden = self.hideStatusView
-        let navigationViewportDataSource = NavigationViewportDataSource(navigationView.navigationMapView.mapView,
+        let navigationViewportDataSource = NavigationViewportDataSource(navigationMapView.mapView,
                                                                         viewportDataSourceType: .raw)
-        navigationView.navigationMapView.navigationCamera.viewportDataSource = navigationViewportDataSource
-        navigationView.navigationMapView.navigationCamera.follow()
+        navigationViewportDataSource.options.followingCameraOptions.zoomUpdatesAllowed = false
+                navigationViewportDataSource.followingMobileCamera.zoom = 13.0
+        navigationMapView.navigationCamera.viewportDataSource = navigationViewportDataSource
+        navigationMapView.navigationCamera.follow()
         passiveLocationProvider.startUpdatingLocation()
+        
+        print("navigationMapView is starting to follow")
         
         let navigationRouteOptions = NavigationRouteOptions(coordinates: [
             CLLocationCoordinate2D(latitude: origin[1] as! CLLocationDegrees, longitude: origin[0] as! CLLocationDegrees),
@@ -115,6 +119,7 @@ class MapboxNavigationView: UIView, NavigationViewControllerDelegate {
             case .failure(let error):
                 print("Error occured: \(error.localizedDescription)")
             case .success(let routeResponse):
+                print("calculateRoutes returned response")
                 let navigationService = MapboxNavigationService(indexedRouteResponse: routeResponse, credentials: NavigationSettings.shared.directions.credentials, simulating: self.shouldSimulateRoute ? .always : .never)
                 
                 let navigationOptions = NavigationOptions(navigationService: navigationService, bottomBanner: CustomBottomBarViewController())
@@ -134,17 +139,20 @@ class MapboxNavigationView: UIView, NavigationViewControllerDelegate {
                 }
                 
                 navigationViewController.view.frame = self.bounds
-                UIView.transition(with: self.navigationView, duration: 1, options: [.transitionCurlUp], animations: {
+                print("starting animation for navigationViewController")
+                UIView.transition(with: self.navigationMapView, duration: 1, options: [.transitionCurlUp], animations: {
                     //navigationViewController.navigationMapView = self.navigationView.navigationMapView
                     self.addSubview(navigationViewController.view)
                 }, completion: { (success) -> Void in
                     if success {
-                        self.navigationView.removeFromSuperview()
+                        self.navigationMapView.removeFromSuperview()
+                        print("completed animation for navigationViewController")
                     }
                 })
                 self.navViewController = navigationViewController
                 self.parentViewController?.addChild(navigationViewController)
                 navigationViewController.didMove(toParent: self.parentViewController)
+                print("everything done")
             }
             
         }
