@@ -2,7 +2,6 @@ import MapboxCoreNavigation
 import MapboxNavigation
 import MapboxDirections
 import MapboxMaps
-import MapboxCoreMaps
 
 // adapted from https://pspdfkit.com/blog/2017/native-view-controllers-and-react-native/ and https://github.com/mslabenyak/react-native-mapbox-navigation/blob/master/ios/Mapbox/MapboxNavigationView.swift
 extension UIView {
@@ -91,7 +90,6 @@ class MapboxNavigationView: UIView, NavigationViewControllerDelegate {
         embedding = true
         
         
-        let locationProvider: LocationProvider = passiveLocationProvider
         navigationView = NavigationView(frame: self.bounds)
         navigationView.translatesAutoresizingMaskIntoConstraints = false
         self.addSubview(navigationView)
@@ -101,17 +99,17 @@ class MapboxNavigationView: UIView, NavigationViewControllerDelegate {
             navigationView.topAnchor.constraint(equalTo: self.topAnchor),
             navigationView.bottomAnchor.constraint(equalTo: self.bottomAnchor)
         ])
+        StatusView.appearance().isHidden = self.hideStatusView
         let navigationViewportDataSource = NavigationViewportDataSource(navigationView.navigationMapView.mapView,
                                                                         viewportDataSourceType: .raw)
         navigationView.navigationMapView.navigationCamera.viewportDataSource = navigationViewportDataSource
         navigationView.navigationMapView.navigationCamera.follow()
-        navigationView.navigationMapView.mapView.location.overrideLocationProvider(with: locationProvider)
         passiveLocationProvider.startUpdatingLocation()
         
         let navigationRouteOptions = NavigationRouteOptions(coordinates: [
             CLLocationCoordinate2D(latitude: origin[1] as! CLLocationDegrees, longitude: origin[0] as! CLLocationDegrees),
             CLLocationCoordinate2D(latitude: destination[1] as! CLLocationDegrees, longitude: destination[0] as! CLLocationDegrees)
-        ])
+        ], profileIdentifier: .automobileAvoidingTraffic)
         MapboxRoutingProvider().calculateRoutes(options: navigationRouteOptions) { (result) in
             switch result {
             case .failure(let error):
@@ -127,7 +125,7 @@ class MapboxNavigationView: UIView, NavigationViewControllerDelegate {
                 
                 navigationViewController.shouldManageApplicationIdleTimer = false
                 navigationViewController.showsEndOfRouteFeedback = self.showsEndOfRouteFeedback
-                StatusView.appearance().isHidden = self.hideStatusView
+                
                 
                 NavigationSettings.shared.voiceMuted = self.mute;
                 
@@ -137,11 +135,16 @@ class MapboxNavigationView: UIView, NavigationViewControllerDelegate {
                 
                 navigationViewController.view.frame = self.bounds
                 UIView.transition(with: self.navigationView, duration: 1, options: [.transitionCurlUp], animations: {
-                    navigationViewController.navigationMapView = self.navigationView.navigationMapView
+                    //navigationViewController.navigationMapView = self.navigationView.navigationMapView
                     self.addSubview(navigationViewController.view)
-                }, completion: nil)
-                navigationViewController.didMove(toParent: self.parentViewController)
+                }, completion: { (success) -> Void in
+                    if success {
+                        self.navigationView.removeFromSuperview()
+                    }
+                })
                 self.navViewController = navigationViewController
+                self.parentViewController?.addChild(navigationViewController)
+                navigationViewController.didMove(toParent: self.parentViewController)
             }
             
         }
