@@ -78,6 +78,8 @@ class MapboxNavigationView: UIView, NavigationViewControllerDelegate {
         super.removeFromSuperview()
         // cleanup and teardown any existing resources
         self.navViewController?.removeFromParent()
+        // TODO: clean up PassiveLocationManager?
+        
     }
     
     @objc private func toggleMute(sender: UIButton) {
@@ -89,70 +91,82 @@ class MapboxNavigationView: UIView, NavigationViewControllerDelegate {
         
         embedding = true
         
+        // We can activate "Free-Drive" without having to display a temporary map
+        // this is possible by starting up the passiveLocationProvider.
         
-        navigationMapView = NavigationMapView(frame: self.bounds)
-        navigationMapView.translatesAutoresizingMaskIntoConstraints = false
-        self.addSubview(navigationMapView)
-        NSLayoutConstraint.activate([
-            navigationMapView.leadingAnchor.constraint(equalTo: self.leadingAnchor),
-            navigationMapView.trailingAnchor.constraint(equalTo: self.trailingAnchor),
-            navigationMapView.topAnchor.constraint(equalTo: self.topAnchor),
-            navigationMapView.bottomAnchor.constraint(equalTo: self.bottomAnchor)
-        ])
-        StatusView.appearance().isHidden = self.hideStatusView
-        let navigationViewportDataSource = NavigationViewportDataSource(navigationMapView.mapView,
-                                                                        viewportDataSourceType: .raw)
-        navigationViewportDataSource.options.followingCameraOptions.zoomUpdatesAllowed = false
-                navigationViewportDataSource.followingMobileCamera.zoom = 13.0
-        navigationMapView.navigationCamera.viewportDataSource = navigationViewportDataSource
-        navigationMapView.navigationCamera.follow()
+        //        navigationMapView = NavigationMapView(frame: self.bounds)
+        //        navigationMapView.translatesAutoresizingMaskIntoConstraints = false
+        //        self.addSubview(navigationMapView)
+        //        NSLayoutConstraint.activate([
+        //            navigationMapView.leadingAnchor.constraint(equalTo: self.leadingAnchor),
+        //            navigationMapView.trailingAnchor.constraint(equalTo: self.trailingAnchor),
+        //            navigationMapView.topAnchor.constraint(equalTo: self.topAnchor),
+        //            navigationMapView.bottomAnchor.constraint(equalTo: self.bottomAnchor)
+        //        ])
+        //
+        //        let navigationViewportDataSource = NavigationViewportDataSource(navigationMapView.mapView,
+        //                                                                        viewportDataSourceType: .raw)
+        //        navigationViewportDataSource.options.followingCameraOptions.zoomUpdatesAllowed = false
+        //                navigationViewportDataSource.followingMobileCamera.zoom = 13.0
+        //        navigationMapView.navigationCamera.viewportDataSource = navigationViewportDataSource
+        //        navigationMapView.navigationCamera.follow()
+        
+        // start up passiveLocationProvider before requesting a route as suggested by Mapbox.
         passiveLocationProvider.startUpdatingLocation()
-        
-        print("navigationMapView is starting to follow")
         
         let navigationRouteOptions = NavigationRouteOptions(coordinates: [
             CLLocationCoordinate2D(latitude: origin[1] as! CLLocationDegrees, longitude: origin[0] as! CLLocationDegrees),
             CLLocationCoordinate2D(latitude: destination[1] as! CLLocationDegrees, longitude: destination[0] as! CLLocationDegrees)
         ], profileIdentifier: .automobileAvoidingTraffic)
-        MapboxRoutingProvider().calculateRoutes(options: navigationRouteOptions) { (result) in
+        MapboxRoutingProvider().calculateRoutes(options: navigationRouteOptions) { [weak self] result in
+            guard let strongSelf = self, let parentVC = strongSelf.parentViewController else {
+                // TODO: call onError here? we've lost our self reference so how can we?
+                return
+            }
             switch result {
             case .failure(let error):
-                print("Error occured: \(error.localizedDescription)")
+                strongSelf.onError?(["message": error.localizedDescription])
             case .success(let routeResponse):
-                print("calculateRoutes returned response")
-                let navigationService = MapboxNavigationService(indexedRouteResponse: routeResponse, credentials: NavigationSettings.shared.directions.credentials, simulating: self.shouldSimulateRoute ? .always : .never)
+                guard let weakSelf = self else {
+                    // TODO: call onError here? we've lost our self reference so how can we?
+                    return
+                }
+                let navigationService = MapboxNavigationService(indexedRouteResponse: routeResponse, credentials: NavigationSettings.shared.directions.credentials, simulating: strongSelf.shouldSimulateRoute ? .always : .never)
                 
                 let navigationOptions = NavigationOptions(navigationService: navigationService, bottomBanner: CustomBottomBarViewController())
                 
                 let navigationViewController = NavigationViewController(for: routeResponse,
                                                                         navigationOptions: navigationOptions)
-                navigationViewController.delegate = self
-                
                 navigationViewController.shouldManageApplicationIdleTimer = false
-                navigationViewController.showsEndOfRouteFeedback = self.showsEndOfRouteFeedback
+                navigationViewController.showsEndOfRouteFeedback = strongSelf.showsEndOfRouteFeedback
                 
-                
-                NavigationSettings.shared.voiceMuted = self.mute;
+                StatusView.appearance().isHidden = strongSelf.hideStatusView
+                NavigationSettings.shared.voiceMuted = strongSelf.mute;
                 
                 if let muteButton = navigationViewController.floatingButtons?[1] {
-                    muteButton.addTarget(self, action: #selector(self.toggleMute(sender:)), for: .touchUpInside)
+                    muteButton.addTarget(strongSelf, action: #selector(strongSelf.toggleMute(sender:)), for: .touchUpInside)
                 }
                 
-                navigationViewController.view.frame = self.bounds
-                print("starting animation for navigationViewController")
-                UIView.transition(with: self.navigationMapView, duration: 1, options: [.transitionCurlUp], animations: {
-                    //navigationViewController.navigationMapView = self.navigationView.navigationMapView
-                    self.addSubview(navigationViewController.view)
-                }, completion: { (success) -> Void in
-                    if success {
-                        self.navigationMapView.removeFromSuperview()
-                        print("completed animation for navigationViewController")
-                    }
+                navigationViewController.delegate = strongSelf
+                //strongSelf.addSubview(navigationViewController.view)
+                navigationViewController.view.frame = strongSelf.bounds
+                navigationViewController.didMove(toParent: parentVC)
+                strongSelf.navViewController = navigationViewController
+                
+                UIView.animate(withDuration: 1, delay: 0, options: .transitionCurlUp, animations: {
+                    strongSelf.addSubview(navigationViewController.view)
                 })
-                self.navViewController = navigationViewController
-                self.parentViewController?.addChild(navigationViewController)
-                navigationViewController.didMove(toParent: self.parentViewController)
-                print("everything done")
+                
+                // We don't need to animate the view here if there's no passive map view to swap with.
+//                UIView.transition(with: self.navigationMapView, duration: 1, options: [.transitionCurlUp], animations: {
+//                    //navigationViewController.navigationMapView = self.navigationView.navigationMapView
+//                    self.addSubview(navigationViewController.view)
+//                }, completion: { (success) -> Void in
+//                    if success {
+//                        self.navigationMapView.removeFromSuperview()
+//                        print("completed animation for navigationViewController")
+//                    }
+//                })
             }
             
         }
