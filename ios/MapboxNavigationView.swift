@@ -149,6 +149,7 @@ class MapboxNavigationView: UIView, NavigationViewControllerDelegate {
                 
                 navigationViewController.delegate = strongSelf
                 //strongSelf.addSubview(navigationViewController.view)
+                parentVC.addChild(navigationViewController)
                 navigationViewController.view.frame = strongSelf.bounds
                 navigationViewController.didMove(toParent: parentVC)
                 strongSelf.navViewController = navigationViewController
