@@ -79,7 +79,8 @@ class MapboxNavigationView: UIView, NavigationViewControllerDelegate {
         // cleanup and teardown any existing resources
         self.navViewController?.removeFromParent()
         // TODO: clean up PassiveLocationManager?
-        
+        self.passiveLocationProvider = nil
+        self.passiveLocationManager = nil
     }
     
     @objc private func toggleMute(sender: UIButton) {
@@ -153,6 +154,10 @@ class MapboxNavigationView: UIView, NavigationViewControllerDelegate {
                 navigationViewController.view.frame = strongSelf.bounds
                 navigationViewController.didMove(toParent: parentVC)
                 strongSelf.navViewController = navigationViewController
+
+                // Cleanup PassiveLocationManager/Provider
+                strongSelf.passiveLocationProvider = nil
+                strongSelf.passiveLocationManager = nil
                 
                 UIView.animate(withDuration: 1, delay: 0, options: .transitionCurlUp, animations: {
                     strongSelf.addSubview(navigationViewController.view)
