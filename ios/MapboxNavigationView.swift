@@ -133,7 +133,11 @@ class MapboxNavigationView: UIView, NavigationViewControllerDelegate {
                     // TODO: call onError here? we've lost our self reference so how can we?
                     return
                 }
+                
+                // dispose of PLM after this call
                 let navigationService = MapboxNavigationService(indexedRouteResponse: routeResponse, credentials: NavigationSettings.shared.directions.credentials, simulating: strongSelf.shouldSimulateRoute ? .always : .never)
+                
+                strongSelf.passiveLocationManager = nil
                 
                 let navigationOptions = NavigationOptions(navigationService: navigationService, bottomBanner: CustomBottomBarViewController())
                 
@@ -163,7 +167,7 @@ class MapboxNavigationView: UIView, NavigationViewControllerDelegate {
                     strongSelf.addSubview(navigationViewController.view)
                 }, completion: { (success) -> Void in
                     // Cleanup PassiveLocationManager
-                    strongSelf.passiveLocationManager = nil
+                    //strongSelf.passiveLocationManager = nil
                 })
                 
                 // We don't need to animate the view here if there's no passive map view to swap with.
