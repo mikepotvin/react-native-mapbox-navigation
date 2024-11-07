@@ -20,7 +20,6 @@ extension UIView {
 class MapboxNavigationView: UIView, NavigationViewControllerDelegate {
     weak var navViewController: NavigationViewController?
     weak var passiveLocationManager: PassiveLocationManager?
-    weak var passiveLocationProvider: PassiveLocationProvider?
     
     var embedded: Bool
     var embedding: Bool
@@ -78,8 +77,7 @@ class MapboxNavigationView: UIView, NavigationViewControllerDelegate {
         super.removeFromSuperview()
         // cleanup and teardown any existing resources
         self.navViewController?.removeFromParent()
-        // clean up PassiveLocationManager/Provider
-        self.passiveLocationProvider = nil
+        // clean up PassiveLocationManager
         self.passiveLocationManager = nil
     }
     
@@ -115,11 +113,7 @@ class MapboxNavigationView: UIView, NavigationViewControllerDelegate {
         // start up passiveLocationProvider before requesting a route as suggested by Mapbox.
         let passiveLocationManager = PassiveLocationManager()
         self.passiveLocationManager = passiveLocationManager
-        
-        let passiveLocationProvider = PassiveLocationProvider(locationManager: passiveLocationManager)
-        self.passiveLocationProvider = passiveLocationProvider
-        
-        passiveLocationProvider.startUpdatingLocation()
+        passiveLocationManager.startUpdatingLocation()
         
         let navigationRouteOptions = NavigationRouteOptions(coordinates: [
             CLLocationCoordinate2D(latitude: origin[1] as! CLLocationDegrees, longitude: origin[0] as! CLLocationDegrees),
@@ -161,12 +155,14 @@ class MapboxNavigationView: UIView, NavigationViewControllerDelegate {
                 navigationViewController.didMove(toParent: parentVC)
                 strongSelf.navViewController = navigationViewController
 
-                // Cleanup PassiveLocationManager/Provider
-                strongSelf.passiveLocationProvider = nil
-                strongSelf.passiveLocationManager = nil
+                // Cleanup PassiveLocationManager
+                //strongSelf.passiveLocationManager = nil
                 
                 UIView.animate(withDuration: 1, delay: 0, options: .transitionCurlUp, animations: {
                     strongSelf.addSubview(navigationViewController.view)
+                }, completion: { (success) -> Void in
+                    // Cleanup PassiveLocationManager
+                    strongSelf.passiveLocationManager = nil
                 })
                 
                 // We don't need to animate the view here if there's no passive map view to swap with.
