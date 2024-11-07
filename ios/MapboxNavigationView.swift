@@ -91,7 +91,7 @@ class MapboxNavigationView: UIView, NavigationViewControllerDelegate {
         embedding = true
         
         // We can activate "Free-Drive" without having to display a temporary map
-        // this is possible by starting up the passiveLocationProvider.
+        // this is possible by starting up the passiveLocationManager.
         
         //        navigationMapView = NavigationMapView(frame: self.bounds)
         //        navigationMapView.translatesAutoresizingMaskIntoConstraints = false
