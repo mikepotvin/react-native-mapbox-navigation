@@ -109,7 +109,8 @@ class MapboxNavigationView: UIView, NavigationViewControllerDelegate {
         //                navigationViewportDataSource.followingMobileCamera.zoom = 13.0
         //        navigationMapView.navigationCamera.viewportDataSource = navigationViewportDataSource
         //        navigationMapView.navigationCamera.follow()
-        
+
+        // 
         // start up passiveLocationProvider before requesting a route as suggested by Mapbox.
         let passiveLocationManager = PassiveLocationManager()
         self.passiveLocationManager = passiveLocationManager
