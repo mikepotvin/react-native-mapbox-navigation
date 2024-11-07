@@ -19,8 +19,8 @@ extension UIView {
 
 class MapboxNavigationView: UIView, NavigationViewControllerDelegate {
     weak var navViewController: NavigationViewController?
-    private let passiveLocationManager = PassiveLocationManager()
-    private lazy var passiveLocationProvider = PassiveLocationProvider(locationManager: passiveLocationManager)
+    weak var passiveLocationManager: PassiveLocationManager?
+    weak var passiveLocationProvider: PassiveLocationProvider?
     
     var embedded: Bool
     var embedding: Bool
@@ -78,7 +78,7 @@ class MapboxNavigationView: UIView, NavigationViewControllerDelegate {
         super.removeFromSuperview()
         // cleanup and teardown any existing resources
         self.navViewController?.removeFromParent()
-        // TODO: clean up PassiveLocationManager?
+        // clean up PassiveLocationManager/Provider
         self.passiveLocationProvider = nil
         self.passiveLocationManager = nil
     }
@@ -113,6 +113,12 @@ class MapboxNavigationView: UIView, NavigationViewControllerDelegate {
         //        navigationMapView.navigationCamera.follow()
         
         // start up passiveLocationProvider before requesting a route as suggested by Mapbox.
+        let passiveLocationManager = PassiveLocationManager()
+        self.passiveLocationManager = passiveLocationManager
+        
+        let passiveLocationProvider = PassiveLocationProvider(locationManager: passiveLocationManager)
+        self.passiveLocationProvider = passiveLocationProvider
+        
         passiveLocationProvider.startUpdatingLocation()
         
         let navigationRouteOptions = NavigationRouteOptions(coordinates: [
