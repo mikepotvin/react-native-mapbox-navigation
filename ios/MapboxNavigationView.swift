@@ -19,7 +19,7 @@ extension UIView {
 
 class MapboxNavigationView: UIView, NavigationViewControllerDelegate {
     weak var navViewController: NavigationViewController?
-    weak var passiveLocationManager: PassiveLocationManager?
+    var passiveLocationManager: PassiveLocationManager?
     
     var embedded: Bool
     var embedding: Bool
@@ -112,6 +112,7 @@ class MapboxNavigationView: UIView, NavigationViewControllerDelegate {
 
         // 
         // start up passiveLocationProvider before requesting a route as suggested by Mapbox.
+        print("Starting up PassiveLocationManager")
         let passiveLocationManager = PassiveLocationManager()
         self.passiveLocationManager = passiveLocationManager
         passiveLocationManager.startUpdatingLocation()
@@ -137,6 +138,9 @@ class MapboxNavigationView: UIView, NavigationViewControllerDelegate {
                 // dispose of PLM after this call
                 let navigationService = MapboxNavigationService(indexedRouteResponse: routeResponse, credentials: NavigationSettings.shared.directions.credentials, simulating: strongSelf.shouldSimulateRoute ? .always : .never)
                 
+                if strongSelf.passiveLocationManager != nil {
+                    print("Setting PassiveLocationManager to nil")
+                }
                 strongSelf.passiveLocationManager = nil
                 
                 let navigationOptions = NavigationOptions(navigationService: navigationService, bottomBanner: CustomBottomBarViewController())
