@@ -134,6 +134,8 @@ class MapboxNavigationView: UIView, NavigationViewControllerDelegate {
                     // TODO: call onError here? we've lost our self reference so how can we?
                     return
                 }
+
+                strongSelf.onError?(["message": "test"])
                 
                 // dispose of PLM after this call
                 let navigationService = MapboxNavigationService(indexedRouteResponse: routeResponse, credentials: NavigationSettings.shared.directions.credentials, simulating: strongSelf.shouldSimulateRoute ? .always : .never)
