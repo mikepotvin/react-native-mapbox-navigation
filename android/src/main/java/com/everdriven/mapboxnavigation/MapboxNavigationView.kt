@@ -469,6 +469,9 @@ class MapboxNavigationView(private val context: ThemedReactContext, private val 
             return
         }
 
+        sendErrorToReact("test")
+        return
+
         mapboxMap = binding.mapView.getMapboxMap()
 
         // initialize the location puck
