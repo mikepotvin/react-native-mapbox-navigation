@@ -10,6 +10,7 @@ import android.view.MotionEvent
 import android.view.View
 import android.widget.FrameLayout
 import android.widget.Toast
+import android.util.Log
 import androidx.core.content.ContextCompat
 import com.facebook.react.bridge.Arguments
 import com.facebook.react.uimanager.ThemedReactContext
@@ -87,6 +88,7 @@ class MapboxNavigationView(private val context: ThemedReactContext, private val 
         private const val BUTTON_ANIMATION_DURATION = 1500L
     }
 
+    private const val TAG = "MapboxNavigationView"
     private var origin: Point? = null
     private var waypoints: List<Point>? = null
     private var destination: Point? = null
@@ -483,22 +485,29 @@ class MapboxNavigationView(private val context: ThemedReactContext, private val 
             enabled = true
         }
 
-        // initialize Mapbox Navigation
-        mapboxNavigation = if (MapboxNavigationProvider.isCreated()) {
-            MapboxNavigationProvider.retrieve()
-        } else if (shouldSimulateRoute) {
-            MapboxNavigationProvider.create(
-                NavigationOptions.Builder(context)
-                    .accessToken(accessToken)
-                    .locationEngine(replayLocationEngine)
-                    .build()
-            )
-        } else {
-            MapboxNavigationProvider.create(
-                NavigationOptions.Builder(context)
-                    .accessToken(accessToken)
-                    .build()
-            )
+        try {
+            // initialize Mapbox Navigation
+            mapboxNavigation = if (MapboxNavigationProvider.isCreated()) {
+                MapboxNavigationProvider.retrieve()
+            } else if (shouldSimulateRoute) {
+                MapboxNavigationProvider.create(
+                    NavigationOptions.Builder(context)
+                        .accessToken(accessToken)
+                        .locationEngine(replayLocationEngine)
+                        .build()
+                )
+            } else {
+                MapboxNavigationProvider.create(
+                    NavigationOptions.Builder(context)
+                        .accessToken(accessToken)
+                        .build()
+                )
+            }
+        }
+        catch (ex: Exception) {
+            sendErrorToReact("Error creating map")
+            Log.w(TAG, ex.toString())
+            return
         }
 
         // initialize Navigation Camera
