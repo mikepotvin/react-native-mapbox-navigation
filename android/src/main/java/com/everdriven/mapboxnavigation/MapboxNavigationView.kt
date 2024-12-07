@@ -88,7 +88,7 @@ class MapboxNavigationView(private val context: ThemedReactContext, private val 
         private const val BUTTON_ANIMATION_DURATION = 1500L
     }
 
-    private const val TAG = "MapboxNavigationView"
+    //private const val TAG = "MapboxNavigationView"
     private var origin: Point? = null
     private var waypoints: List<Point>? = null
     private var destination: Point? = null
@@ -506,7 +506,7 @@ class MapboxNavigationView(private val context: ThemedReactContext, private val 
         }
         catch (ex: Exception) {
             sendErrorToReact("Error creating map")
-            Log.w(TAG, ex.toString())
+            Log.w("MapboxNavigationView", ex.toString())
             return
         }
 
