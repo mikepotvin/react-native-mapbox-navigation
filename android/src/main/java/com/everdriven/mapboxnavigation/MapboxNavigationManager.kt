@@ -8,8 +8,9 @@ import com.facebook.react.uimanager.SimpleViewManager
 import com.facebook.react.uimanager.ThemedReactContext
 import com.facebook.react.uimanager.annotations.ReactProp
 import com.mapbox.geojson.Point
-import com.mapbox.maps.ResourceOptionsManager
-import com.mapbox.maps.TileStoreUsageMode
+import com.mapbox.maps.*
+import com.mapbox.common.MapboxOptions
+import com.mapbox.common.TileStore
 import javax.annotation.Nonnull
 
 class MapboxNavigationManager(var mCallerContext: ReactApplicationContext) : SimpleViewManager<MapboxNavigationView>() {
@@ -21,9 +22,7 @@ class MapboxNavigationManager(var mCallerContext: ReactApplicationContext) : Sim
         val bundle = app.metaData
         val accessToken = bundle.getString("MAPBOX_ACCESS_TOKEN")
         this.accessToken = accessToken
-        ResourceOptionsManager.getDefault(mCallerContext, accessToken).update {
-          tileStoreUsageMode(TileStoreUsageMode.READ_ONLY)
-        }
+        MapboxOptions.mapsOptions.tileStoreUsageMode = TileStoreUsageMode.READ_ONLY
       } catch (e: PackageManager.NameNotFoundException) {
         e.printStackTrace()
       }

@@ -3,8 +3,7 @@ package com.everdriven.mapboxnavigation
 import android.content.Context
 import android.util.AttributeSet
 import android.view.MotionEvent
-import com.mapbox.maps.MapView
-import com.mapbox.maps.MapInitOptions
+import com.mapbox.maps.*
 
 
 open class CustomMapView : MapView {
