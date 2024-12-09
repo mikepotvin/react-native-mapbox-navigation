@@ -580,7 +580,7 @@ class MapboxNavigationView(private val context: ThemedReactContext, private val 
         // the value of this option will depend on the style that you are using
         // and under which layer the route line should be placed on the map layers stack
         val mapboxRouteLineViewOptions = MapboxRouteLineViewOptions.Builder(context)
-            .routeLineBelowLayerId("road-label-navigation")
+            .routeLineBelowLayerId("road-label")
             .build()
         routeLineApi = MapboxRouteLineApi(MapboxRouteLineApiOptions.Builder().build())
         routeLineView = MapboxRouteLineView(mapboxRouteLineViewOptions)
