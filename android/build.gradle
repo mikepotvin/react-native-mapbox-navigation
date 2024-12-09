@@ -54,15 +54,16 @@ android {
     disable "GradleCompatible"
   }
 
-  compileOptions {
-    sourceCompatibility JavaVersion.VERSION_17
-    targetCompatibility JavaVersion.VERSION_17
+
+    compileOptions {
+      sourceCompatibility JavaVersion.VERSION_17
+      targetCompatibility JavaVersion.VERSION_17
+  }
+  // Add the block below if you're using Kotlin
+  kotlinOptions {
+    jvmTarget = "17"
   }
 
-  // // Add the block below if you're using Kotlin
-  kotlinOptions {
-      jvmTarget = "17"
-  }
 
    buildFeatures {
       viewBinding true
@@ -85,7 +86,11 @@ dependencies {
   implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlin_version"
 
   // mapbox dependencies
-  implementation "com.mapbox.navigation:android:2.19.0-ndk-23-preview-1-SNAPSHOT"
+  implementation "com.mapbox.navigationcore:navigation:3.5.4"
+  implementation "com.mapbox.navigationcore:ui-maps:3.5.4"
+  implementation "com.mapbox.navigationcore:voice:3.5.4"
+  implementation "com.mapbox.navigationcore:tripdata:3.5.4"
+  implementation "com.mapbox.navigationcore:ui-components:3.5.4"
   implementation 'androidx.constraintlayout:constraintlayout:2.1.4'
   implementation 'androidx.cardview:cardview:1.0.0'
 }
