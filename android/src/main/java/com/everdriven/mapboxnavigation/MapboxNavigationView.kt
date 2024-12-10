@@ -750,7 +750,7 @@ class MapboxNavigationView(private val context: ThemedReactContext, private val 
         //binding.tripProgressCard.visibility = View.VISIBLE
 
         // move the camera to overview when new route is available
-        navigationCamera.requestNavigationCameraToOverview()
+        navigationCamera.requestNavigationCameraToFollowing()
     }
 
     private fun clearRouteAndStopNavigation() {
