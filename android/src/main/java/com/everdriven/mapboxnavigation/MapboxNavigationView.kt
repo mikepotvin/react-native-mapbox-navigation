@@ -1,5 +1,8 @@
 package com.everdriven.mapboxnavigation
 
+
+import com.mapbox.navigation.core.lifecycle.MapboxNavigationObserver
+import com.mapbox.navigation.core.lifecycle.MapboxNavigationApp
 import android.annotation.SuppressLint
 import android.content.res.Configuration
 import android.content.res.Resources
@@ -465,6 +468,14 @@ class MapboxNavigationView(private val context: ThemedReactContext, private val 
             return
         }
 
+        if (!MapboxNavigationApp.isSetup()) {
+            MapboxNavigationApp.setup {
+                NavigationOptions.Builder(context)
+                    // additional options
+                    .build()
+            }
+        }
+
         mapboxMap = binding.mapView.getMapboxMap()
 
         // initialize the location puck
@@ -589,7 +600,7 @@ class MapboxNavigationView(private val context: ThemedReactContext, private val 
         val routeArrowOptions = RouteArrowOptions.Builder(context).build()
         routeArrowView = MapboxRouteArrowView(routeArrowOptions)
 
-        setCameraPositionToOrigin()
+        //setCameraPositionToOrigin()
         // load map style
         mapboxMap.loadStyleUri(
             Style.MAPBOX_STREETS
@@ -673,8 +684,9 @@ class MapboxNavigationView(private val context: ThemedReactContext, private val 
                 .applyDefaultNavigationOptions()
                 .applyLanguageAndVoiceUnitOptions(context)
                 .coordinatesList(coordinates)
-                .profile(DirectionsCriteria.PROFILE_DRIVING)
+                .layersList(listOf(mapboxNavigation.getZLevel(), null))
                 .steps(true)
+
 
             maxHeight?.let { routeOptionsBuilder.maxHeight(it) }
             maxWidth?.let { routeOptionsBuilder.maxWidth(it) }
@@ -738,7 +750,7 @@ class MapboxNavigationView(private val context: ThemedReactContext, private val 
         //binding.tripProgressCard.visibility = View.VISIBLE
 
         // move the camera to overview when new route is available
-        navigationCamera.requestNavigationCameraToFollowing()
+        navigationCamera.requestNavigationCameraToOverview()
     }
 
     private fun clearRouteAndStopNavigation() {
