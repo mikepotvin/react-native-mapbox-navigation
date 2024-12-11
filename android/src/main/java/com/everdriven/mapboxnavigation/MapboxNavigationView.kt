@@ -718,7 +718,6 @@ class MapboxNavigationView(private val context: ThemedReactContext, private val 
     private fun onDestroy() {
         MapboxNavigationProvider.destroy()
         mapboxNavigation.mapboxReplayer.finish()
-        mapboxNavigation.stopTripSession()
         maneuverApi.cancel()
         routeLineApi.cancel()
         routeLineView.cancel()
