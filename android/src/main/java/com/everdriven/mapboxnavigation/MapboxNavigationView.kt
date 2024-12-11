@@ -13,6 +13,7 @@ import android.view.MotionEvent
 import android.view.View
 import android.widget.FrameLayout
 import android.widget.Toast
+import android.util.Log
 import androidx.core.content.ContextCompat
 import com.facebook.react.bridge.Arguments
 import com.facebook.react.uimanager.ThemedReactContext
@@ -50,6 +51,7 @@ import com.mapbox.navigation.core.trip.session.RouteProgressObserver
 import com.mapbox.navigation.core.trip.session.VoiceInstructionsObserver
 import com.everdriven.mapboxnavigation.databinding.NavigationViewBinding
 import com.mapbox.api.directions.v5.DirectionsCriteria
+import com.mapbox.api.directions.v5.models.Bearing
 import com.mapbox.navigation.base.trip.model.RouteLegProgress
 import com.mapbox.navigation.base.trip.model.RouteProgress
 import com.mapbox.navigation.core.arrival.ArrivalObserver
@@ -288,6 +290,7 @@ class MapboxNavigationView(private val context: ThemedReactContext, private val 
      */
 
     private val locationObserver = object : LocationObserver {
+        var firstLocationUpdateReceived = false
         override fun onNewRawLocation(rawLocation: Location) {
             // handle raw location update if needed
         }
@@ -303,6 +306,17 @@ class MapboxNavigationView(private val context: ThemedReactContext, private val 
             // update camera position to account for new location
             viewportDataSource.onLocationChanged(enhancedLocation)
             viewportDataSource.evaluate()
+
+            // if this is the first location update the activity has received,
+            // it's best to immediately move the camera to the current user location
+            if (!firstLocationUpdateReceived) {
+                firstLocationUpdateReceived = true
+                navigationCamera.requestNavigationCameraToFollowing(
+                    stateTransitionOptions = NavigationCameraTransitionOptions.Builder()
+                        .maxDuration(0) // instant transition
+                        .build()
+                )
+            }
 
             val event = Arguments.createMap()
             event.putDouble("longitude", enhancedLocation.longitude)
@@ -593,7 +607,9 @@ class MapboxNavigationView(private val context: ThemedReactContext, private val 
         val mapboxRouteLineViewOptions = MapboxRouteLineViewOptions.Builder(context)
             .routeLineBelowLayerId("road-label")
             .build()
-        routeLineApi = MapboxRouteLineApi(MapboxRouteLineApiOptions.Builder().build())
+        routeLineApi = MapboxRouteLineApi(MapboxRouteLineApiOptions.Builder()
+            .vanishingRouteLineEnabled(true)
+            .build())
         routeLineView = MapboxRouteLineView(mapboxRouteLineViewOptions)
 
         // initialize maneuver arrow view to draw arrows on the map
@@ -680,6 +696,8 @@ class MapboxNavigationView(private val context: ThemedReactContext, private val 
 
     private fun findRoute(coordinates: List<Point>) {
         try {
+            //val originLocation = navigationLocationProvider.lastLocation ?: return
+            Log.i("MapboxNavigationView", "Finding route")
             val routeOptionsBuilder = RouteOptions.builder()
                 .applyDefaultNavigationOptions()
                 .applyLanguageAndVoiceUnitOptions(context)
@@ -688,8 +706,8 @@ class MapboxNavigationView(private val context: ThemedReactContext, private val 
                 .steps(true)
 
 
-            maxHeight?.let { routeOptionsBuilder.maxHeight(it) }
-            maxWidth?.let { routeOptionsBuilder.maxWidth(it) }
+            // maxHeight?.let { routeOptionsBuilder.maxHeight(it) }
+            // maxWidth?.let { routeOptionsBuilder.maxWidth(it) }
 
             val routeOptions = routeOptionsBuilder.build()
 
@@ -734,6 +752,10 @@ class MapboxNavigationView(private val context: ThemedReactContext, private val 
             sendErrorToReact("No route found")
             return;
         }
+        Log.i("MapboxNavigationView", "Found route, setting camera to idle")
+        // disable navigation camera
+        navigationCamera.requestNavigationCameraToIdle()
+
         // set routes, where the first route in the list is the primary route that
         // will be used for active guidance
         mapboxNavigation.setNavigationRoutes(routes)
@@ -749,7 +771,8 @@ class MapboxNavigationView(private val context: ThemedReactContext, private val 
         binding.routeOverview.visibility = View.VISIBLE
         //binding.tripProgressCard.visibility = View.VISIBLE
 
-        // move the camera to overview when new route is available
+        // enable the camera back
+        Log.i("MapboxNavigationView", "Setting camera to following")
         navigationCamera.requestNavigationCameraToFollowing()
     }
 
