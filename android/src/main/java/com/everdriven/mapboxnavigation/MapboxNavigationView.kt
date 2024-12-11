@@ -14,6 +14,7 @@ import android.view.View
 import android.widget.FrameLayout
 import android.widget.Toast
 import android.util.Log
+import android.os.Build
 import androidx.core.content.ContextCompat
 import com.facebook.react.bridge.Arguments
 import com.facebook.react.bridge.ReactContext
@@ -678,7 +679,11 @@ class MapboxNavigationView(private val context: ThemedReactContext, private val 
 
         // start the trip session to being receiving location updates in free drive
         // and later when a route is set also receiving route progress updates
-        mapboxNavigation.startTripSession()
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.Q) {
+            mapboxNavigation.startTripSession(withForegroundService = false)
+        } else {
+            mapboxNavigation.startTripSession()
+        }
         startRoute()
     }
 
@@ -713,6 +718,7 @@ class MapboxNavigationView(private val context: ThemedReactContext, private val 
     private fun onDestroy() {
         MapboxNavigationProvider.destroy()
         mapboxNavigation.mapboxReplayer.finish()
+        mapboxNavigation.stopTripSession()
         maneuverApi.cancel()
         routeLineApi.cancel()
         routeLineView.cancel()
