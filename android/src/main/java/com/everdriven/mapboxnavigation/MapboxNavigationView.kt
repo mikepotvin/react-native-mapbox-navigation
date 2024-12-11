@@ -56,6 +56,7 @@ import com.mapbox.api.directions.v5.DirectionsCriteria
 import com.mapbox.api.directions.v5.models.Bearing
 import com.mapbox.navigation.base.trip.model.RouteLegProgress
 import com.mapbox.navigation.base.trip.model.RouteProgress
+import com.mapbox.navigation.base.formatter.DistanceFormatterOptions
 import com.mapbox.navigation.core.arrival.ArrivalObserver
 import com.mapbox.navigation.ui.base.util.MapboxNavigationConsumer
 import com.mapbox.navigation.tripdata.maneuver.api.MapboxManeuverApi
@@ -79,6 +80,7 @@ import com.mapbox.navigation.tripdata.progress.model.EstimatedTimeToArrivalForma
 import com.mapbox.navigation.tripdata.progress.model.PercentDistanceTraveledFormatter
 import com.mapbox.navigation.tripdata.progress.model.TimeRemainingFormatter
 import com.mapbox.navigation.tripdata.progress.model.TripProgressUpdateFormatter
+import com.mapbox.navigation.tripdata.speedlimit.api.MapboxSpeedInfoApi
 import com.mapbox.navigation.ui.components.tripprogress.view.MapboxTripProgressView
 import com.mapbox.navigation.voice.api.MapboxSpeechApi
 import com.mapbox.navigation.voice.api.MapboxVoiceInstructionsPlayer
@@ -140,6 +142,16 @@ class MapboxNavigationView(private val context: ThemedReactContext, private val 
      */
     private lateinit var viewportDataSource: MapboxNavigationViewportDataSource
 
+    // Define distance formatter options
+    private val distanceFormatterOptions: DistanceFormatterOptions by lazy {
+        DistanceFormatterOptions.Builder(context).build()
+    }
+
+    // Create an instance of the Speed Info API
+    private val speedInfoApi: MapboxSpeedInfoApi by lazy {
+        MapboxSpeedInfoApi()
+    }
+    
     /*
      * Below are generated camera padding values to ensure that the route fits well on screen while
      * other elements are overlaid on top of the map (including instruction view, buttons, etc.)
@@ -208,6 +220,8 @@ class MapboxNavigationView(private val context: ThemedReactContext, private val 
      * Draws maneuver arrows on the map based on the data [routeArrowApi].
      */
     private lateinit var routeArrowView: MapboxRouteArrowView
+
+
 
     /**
      * Stores and updates the state of whether the voice instructions should be played as they come or muted.
@@ -309,6 +323,17 @@ class MapboxNavigationView(private val context: ThemedReactContext, private val 
             // update camera position to account for new location
             viewportDataSource.onLocationChanged(enhancedLocation)
             viewportDataSource.evaluate()
+
+            val info = speedInfoApi.updatePostedAndCurrentSpeed(
+                locationMatcherResult,
+                distanceFormatterOptions
+            )
+            if (info != null) {
+                binding.speedLimitView.visibility = View.VISIBLE
+                binding.speedLimitView.render(info)
+            } else {
+                binding.speedLimitView.visibility = View.INVISIBLE
+            }
 
             // if this is the first location update the activity has received,
             // it's best to immediately move the camera to the current user location
