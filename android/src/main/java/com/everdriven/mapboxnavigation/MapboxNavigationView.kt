@@ -16,6 +16,8 @@ import android.widget.Toast
 import android.util.Log
 import androidx.core.content.ContextCompat
 import com.facebook.react.bridge.Arguments
+import com.facebook.react.bridge.ReactContext
+import com.facebook.react.bridge.WritableMap
 import com.facebook.react.uimanager.ThemedReactContext
 import com.mapbox.api.directions.v5.models.DirectionsRoute
 import com.mapbox.api.directions.v5.models.RouteOptions
@@ -85,6 +87,7 @@ import com.mapbox.navigation.voice.model.SpeechError
 import com.mapbox.navigation.voice.model.SpeechValue
 import com.mapbox.navigation.voice.model.SpeechVolume
 import java.util.Locale
+import com.facebook.react.modules.core.DeviceEventManagerModule
 import com.facebook.react.uimanager.events.RCTEventEmitter
 
 @OptIn(ExperimentalPreviewMapboxNavigationAPI::class)
@@ -336,7 +339,7 @@ class MapboxNavigationView(private val context: ThemedReactContext, private val 
         viewportDataSource.evaluate()
 
         // draw the upcoming maneuver arrow on the map
-        val style = mapboxMap.getStyle()
+        val style = mapboxMap.style
         if (style != null) {
             val maneuverArrowResult = routeArrowApi.addUpcomingManeuverArrow(routeProgress)
             routeArrowView.renderManeuverUpdate(style, maneuverArrowResult)
@@ -402,7 +405,7 @@ class MapboxNavigationView(private val context: ThemedReactContext, private val 
             viewportDataSource.evaluate()
         } else {
             // remove the route line and route arrow from the map
-            val style = mapboxMap.getStyle()
+            val style = mapboxMap.style
             if (style != null) {
                 routeLineApi.clearRouteLine { value ->
                     routeLineView.renderClearRouteLineValue(
@@ -490,7 +493,7 @@ class MapboxNavigationView(private val context: ThemedReactContext, private val 
             }
         }
 
-        mapboxMap = binding.mapView.getMapboxMap()
+        mapboxMap = binding.mapView.mapboxMap
 
         // initialize the location puck
         binding.mapView.location.apply {
@@ -618,9 +621,7 @@ class MapboxNavigationView(private val context: ThemedReactContext, private val 
 
         //setCameraPositionToOrigin()
         // load map style
-        mapboxMap.loadStyleUri(
-            Style.MAPBOX_STREETS
-        )
+        mapboxMap.loadStyle(Style.MAPBOX_STREETS)
 
         // initialize view interactions
         binding.stop.setOnClickListener {
@@ -742,9 +743,9 @@ class MapboxNavigationView(private val context: ThemedReactContext, private val 
     private fun sendErrorToReact(error: String?) {
         val event = Arguments.createMap()
         event.putString("error", error)
-        context
-            .getJSModule(RCTEventEmitter::class.java)
-            .receiveEvent(id, "onError", event)
+                context
+          .getJSModule(RCTEventEmitter::class.java)
+          .receiveEvent(id, "onError", event)
     }
 
     private fun setRouteAndStartNavigation(routes: List<NavigationRoute>) {
