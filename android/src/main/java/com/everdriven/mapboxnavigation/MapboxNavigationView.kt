@@ -62,6 +62,10 @@ import com.mapbox.navigation.core.arrival.ArrivalObserver
 import com.mapbox.navigation.ui.base.util.MapboxNavigationConsumer
 import com.mapbox.navigation.tripdata.maneuver.api.MapboxManeuverApi
 import com.mapbox.navigation.ui.components.maneuver.view.MapboxManeuverView
+import com.mapbox.navigation.ui.components.maneuver.model.ManeuverViewOptions
+import com.mapbox.navigation.ui.components.maneuver.model.ManeuverPrimaryOptions
+import com.mapbox.navigation.ui.components.maneuver.model.ManeuverSecondaryOptions
+import com.mapbox.navigation.ui.components.maneuver.model.ManeuverSubOptions
 import com.mapbox.navigation.ui.maps.camera.NavigationCamera
 import com.mapbox.navigation.ui.maps.camera.data.MapboxNavigationViewportDataSource
 import com.mapbox.navigation.ui.maps.camera.lifecycle.NavigationBasicGesturesHandler
@@ -383,10 +387,25 @@ class MapboxNavigationView(private val context: ThemedReactContext, private val 
             },
             {
                 binding.maneuverView.visibility = View.VISIBLE
-                //binding.maneuverView.updatePrimaryManeuverTextAppearance(R.style.PrimaryManeuverTextAppearance)
-                //binding.maneuverView.updateSecondaryManeuverTextAppearance(R.style.ManeuverTextAppearance)
-                //binding.maneuverView.updateSubManeuverTextAppearance(R.style.ManeuverTextAppearance)
-                //binding.maneuverView.updateStepDistanceTextAppearance(R.style.StepDistanceRemainingAppearance)
+                val maneuverViewOptions = ManeuverViewOptions.Builder()
+                    .primaryManeuverOptions(
+                        ManeuverPrimaryOptions.Builder()
+                            .textAppearance(R.style.PrimaryManeuverTextAppearance)
+                            .build()
+                    )
+                    .secondaryManeuverOptions(
+                        ManeuverSecondaryOptions.Builder()
+                            .textAppearance(R.style.ManeuverTextAppearance)
+                            .build()
+                    )
+                    .subManeuverOptions(
+                        ManeuverSubOptions.Builder()
+                            .textAppearance(R.style.ManeuverTextAppearance)
+                            .build()
+                    )
+                    .stepDistanceTextAppearance(R.style.StepDistanceRemainingAppearance)
+                    .build()
+                binding.maneuverView.updateManeuverViewOptions(maneuverViewOptions)
                 binding.maneuverView.renderManeuvers(maneuvers)
             }
         )
