@@ -85,7 +85,7 @@ dependencies {
   implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlin_version"
 
   // mapbox dependencies
-  implementation "com.mapbox.navigation:android:2.19.0-ndk-23-preview-1-SNAPSHOT"
+  implementation "com.mapbox.navigation:android:2.19.0-ndk-23-preview-2-SNAPSHOT"
   implementation 'androidx.constraintlayout:constraintlayout:2.1.4'
   implementation 'androidx.cardview:cardview:1.0.0'
 }
