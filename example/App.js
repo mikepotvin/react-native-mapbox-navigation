@@ -1,14 +1,14 @@
 /* eslint-disable react-native/no-inline-styles */
+import MapboxNavigation from '@everdriven/react-native-mapbox-navigation';
 import React, {useState} from 'react';
 import {
+  Button,
+  SafeAreaView,
   StyleSheet,
   Switch,
   TextInput,
   View,
-  Button,
-  SafeAreaView,
 } from 'react-native';
-import MapboxNavigation from '@everdriven/react-native-mapbox-navigation';
 
 export const Configuration = ({
   from: _from,
@@ -111,8 +111,8 @@ function location(input) {
 
 export default function App() {
   const [settings, setSettings] = useState({
-    from: [-97.760288, 30.273566],
-    to: [-97.918842, 30.494466],
+    from: [-79.486717, 43.743959],
+    to: [-79.382981, 43.645319],
     simulated: true,
   });
   const [configured, setConfigured] = useState(false);

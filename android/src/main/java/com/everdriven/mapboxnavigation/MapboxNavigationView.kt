@@ -344,11 +344,7 @@ class MapboxNavigationView(private val context: ThemedReactContext, private val 
             // it's best to immediately move the camera to the current user location
             if (!firstLocationUpdateReceived) {
                 firstLocationUpdateReceived = true
-                navigationCamera.requestNavigationCameraToFollowing(
-                    stateTransitionOptions = NavigationCameraTransitionOptions.Builder()
-                        .maxDuration(0) // instant transition
-                        .build()
-                )
+                startRoute(enhancedLocation)
             }
 
             val event = Arguments.createMap()
@@ -696,17 +692,8 @@ class MapboxNavigationView(private val context: ThemedReactContext, private val 
                 .receiveEvent(id, "onMuteChange", event)
         }
 
-        // start the trip session to being receiving location updates in free drive
-        // and later when a route is set also receiving route progress updates
-        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.Q) {
-            mapboxNavigation.startTripSession(withForegroundService = false)
-        } else {
-            mapboxNavigation.startTripSession()
-        }
-        startRoute()
-    }
+        Log.i("MapboxNavigationView", "Setting up observers")
 
-    private fun startRoute() {
         // register event listeners
         mapboxNavigation.registerRoutesObserver(routesObserver)
         mapboxNavigation.registerArrivalObserver(arrivalObserver)
@@ -716,13 +703,33 @@ class MapboxNavigationView(private val context: ThemedReactContext, private val 
         replayProgressObserver = ReplayProgressObserver(mapboxNavigation.mapboxReplayer)
         mapboxNavigation.registerRouteProgressObserver(replayProgressObserver)
 
+
+        Log.i("MapboxNavigationView", "Starting trip session")
+        // start the trip session to being receiving location updates in free drive
+        // and later when a route is set also receiving route progress updates
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.Q) {
+            mapboxNavigation.startTripSession(withForegroundService = false)
+        } else {
+            mapboxNavigation.startTripSession()
+        }
+
+        //startRoute()
+        Log.i("MapboxNavigationView", "requestNavigationCameraToFollowing")
+        navigationCamera.requestNavigationCameraToFollowing(
+                    stateTransitionOptions = NavigationCameraTransitionOptions.Builder()
+                        .maxDuration(0) // instant transition
+                        .build()
+                )
+    }
+
+    private fun startRoute(origin: Location) {
         // Create a list of coordinates that includes origin, destination, and waypoints
         val coordinatesList = mutableListOf<Point>()
         this.origin?.let { coordinatesList.add(it) }
         this.waypoints?.let { coordinatesList.addAll(it) }
         this.destination?.let { coordinatesList.add(it) }
 
-        findRoute(coordinatesList)
+        findRoute(origin, this.destination!!)
     }
 
     override fun onDetachedFromWindow() {
@@ -744,14 +751,30 @@ class MapboxNavigationView(private val context: ThemedReactContext, private val 
         voiceInstructionsPlayer.shutdown()
     }
 
-    private fun findRoute(coordinates: List<Point>) {
+    //private fun findRoute(coordinates: List<Point>) {
+    private fun findRoute(origin: Location, destination: Point) {
         try {
-            //val originLocation = navigationLocationProvider.lastLocation ?: return
             Log.i("MapboxNavigationView", "Finding route")
+            val originPoint = Point.fromLngLat(origin.longitude, origin.latitude)
             val routeOptionsBuilder = RouteOptions.builder()
                 .applyDefaultNavigationOptions()
                 .applyLanguageAndVoiceUnitOptions(context)
-                .coordinatesList(coordinates)
+                .coordinatesList(listOf(originPoint, destination))
+                .apply {
+                    // provide the bearing for the origin of the request to ensure
+                    // that the returned route faces in the direction of the current user movement
+                    origin.bearing?.let { bearing ->
+                        bearingsList(
+                            listOf(
+                                Bearing.builder()
+                                    .angle(bearing)
+                                    .degrees(45.0)
+                                    .build(),
+                                null
+                            )
+                        )
+                    }
+                }
                 .layersList(listOf(mapboxNavigation.getZLevel(), null))
                 .steps(true)
 
@@ -802,9 +825,9 @@ class MapboxNavigationView(private val context: ThemedReactContext, private val 
             sendErrorToReact("No route found")
             return;
         }
-        Log.i("MapboxNavigationView", "Found route, setting camera to idle")
+        //Log.i("MapboxNavigationView", "Found route, setting camera to idle")
         // disable navigation camera
-        navigationCamera.requestNavigationCameraToIdle()
+        //navigationCamera.requestNavigationCameraToIdle()
 
         // set routes, where the first route in the list is the primary route that
         // will be used for active guidance
@@ -822,8 +845,8 @@ class MapboxNavigationView(private val context: ThemedReactContext, private val 
         //binding.tripProgressCard.visibility = View.VISIBLE
 
         // enable the camera back
-        Log.i("MapboxNavigationView", "Setting camera to following")
-        navigationCamera.requestNavigationCameraToFollowing()
+        //Log.i("MapboxNavigationView", "Setting camera to following")
+        //navigationCamera.requestNavigationCameraToFollowing()
     }
 
     private fun clearRouteAndStopNavigation() {
