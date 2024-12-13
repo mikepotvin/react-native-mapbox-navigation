@@ -735,6 +735,7 @@ class MapboxNavigationView(private val context: ThemedReactContext, private val 
     override fun onDetachedFromWindow() {
         super.onDetachedFromWindow()
         mapboxNavigation.unregisterRoutesObserver(routesObserver)
+        mapboxNavigation.unregisterArrivalObserver(arrivalObserver)
         mapboxNavigation.unregisterRouteProgressObserver(routeProgressObserver)
         mapboxNavigation.unregisterLocationObserver(locationObserver)
         mapboxNavigation.unregisterVoiceInstructionsObserver(voiceInstructionsObserver)
